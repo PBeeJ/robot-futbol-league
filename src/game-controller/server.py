@@ -36,48 +36,81 @@ GAME_STATE = {
     ],
     "scores": [0, 0],
 }
-USERS = set()
+
+# aabb of playing field
+GAME_BOUNDS = [-8, 4, 8, -4]
+
+SOCKETS = set()
 
 
-def state_event():
-    return json.dumps({"type": "state", **GAME_STATE})
+def state_message():
+    return json.dumps({"type": "state", "data": GAME_STATE})
 
 
-def users_event():
-    return json.dumps({"type": "users", "count": len(USERS)})
+def bounds_message():
+    return json.dumps({"type": "bounds", "data": GAME_BOUNDS})
 
 
-async def notify_state():
-    if USERS:  # asyncio.wait doesn't accept an empty list
-        message = state_event()
-        await asyncio.wait([user.send(message) for user in USERS])
+async def send_message(websocket, message):
+    if websocket and websocket != "all":
+        await asyncio.wait([websocket.send(message) for websocket in SOCKETS])
+    elif SOCKETS:  # asyncio.wait doesn't accept an empty list
+        await asyncio.wait([websocket.send(message) for websocket in SOCKETS])
+
+
+async def notify_state(websocket):
+    await send_message(websocket, state_message())
+
+
+async def notify_bounds(websocket):
+    await send_message(websocket, bounds_message())
 
 
 async def register(websocket):
-    USERS.add(websocket)
     print(f"got new connection from {websocket.remote_address[0]}")
+    SOCKETS.add(websocket)
+    await notify_bounds(websocket)
+    await notify_state(websocket)
 
 
 async def unregister(websocket):
-    USERS.remove(websocket)
-    print(f"lost connection {websocket}")
+    print(f"lost connection {websocket.remote_address[0]}")
+    SOCKETS.remove(websocket)
+
+
+async def handleStateRequest(websocket, data):
+    if websocket.remote_address[0] in ADMIN_IP_ADDRS:
+        # TODO : if comming from an admin apply to GAME_STATE
+        pass
+
+    await notify_state(websocket)
+
+
+async def handleBoundsRequest(websocket, data):
+    if websocket.remote_address[0] in ADMIN_IP_ADDRS:
+        print(f"got admin state request with {data}")
+        # TODO : if comming from an admin apply to GAME_STATE
+
+    await notify_bounds(websocket)
 
 
 async def counter(websocket, path):
     # register(websocket) sends user_event() to websocket
     await register(websocket)
     try:
-        await websocket.send(state_event())
         async for message in websocket:
-            data = json.loads(message)
-            if data["action"] == "minus":
-                GAME_STATE["gameStatus"]["secondsRemaining"] -= 1
-                await notify_state()
-            elif data["action"] == "plus":
-                GAME_STATE["gameStatus"]["secondsRemaining"] += 1
-                await notify_state()
+            jsonData = json.loads(message)
+            messageType = jsonData.get("type")
+            messageData = jsonData.get('data')
+            print(
+                f"got {messageType} request from {websocket.remote_address[0]} with {messageData}")
+
+            if messageType == "state":
+                await handleStateRequest(websocket, messageData)
+            elif messageType == "bounds":
+                await handleBoundsRequest(websocket, messageData)
             else:
-                logging.error("unsupported event: %s", data)
+                logging.error("unsupported event: %s", jsonData)
     finally:
         await unregister(websocket)
 

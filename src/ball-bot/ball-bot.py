@@ -8,30 +8,32 @@ import websockets
 
 GAME_CONTROLLER_URI = "ws://localhost:6789"
 
+GAME_BOUNDS = [-8, 4, 8, -4]
+
 
 async def recvLoop(websocket):
    # take messages from the web socket and push them into the queue
     async for message in websocket:
         data = json.loads(message)
-        gameStatus = data.get("gameStatus")
-        if gameStatus:
-            seconds = gameStatus.get("secondsRemaining")
-            print(f"< {seconds}")
+        messageType = data.get("type")
+        messageData = data.get("data")
+        print(f"got message {messageType} with {messageData}")
 
 
-async def inputLoop(websocket):
+async def mainLoop(websocket):
+    await websocket.send(json.dumps({"type": "bounds"}))
+    await asyncio.sleep(1)
+
     while True:
-        await asyncio.sleep(1)
-        plusOrMinus = input("type 'plus' or 'minus' ")
-        await websocket.send(json.dumps({"action": plusOrMinus}))
-        print(f"> {plusOrMinus}")
+        input('press a key')
+        await websocket.send(json.dumps({"type": "state"}))
         await asyncio.sleep(1)
 
 
 async def ballBot():
     async with websockets.connect(GAME_CONTROLLER_URI) as websocket:
         recvTask = asyncio.create_task(recvLoop(websocket))
-        inputTask = asyncio.create_task(inputLoop(websocket))
+        inputTask = asyncio.create_task(mainLoop(websocket))
 
         # start both tasks, but have the loop return to us when one of them
         # has ended. We can then cancel the remainder
