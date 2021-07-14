@@ -59,9 +59,9 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
         MarvelmindDeviceLocation pos;
         MarvelmindDevice *mmDevice;
 
-        if (posPack.lastDistUpdated) {
-            marvelmindReadRawDistances();
-        }
+        // if (posPack.lastDistUpdated) {
+        //     marvelmindReadRawDistances();
+        // }
 
         for(i=0;i<MM_LOCATIONS_PACK_SIZE;i++) {
             pos= posPack.pos[i];
@@ -104,9 +104,9 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
    double passedSec= getPassedTime(&prevReadTime, &curTime);
    #endif
 
-    if (passedSec<(1.0/MARVELMIND_POS_READ_RATE)) {
-        return notRead;
-    }
+    // if (passedSec<(1.0/MARVELMIND_POS_READ_RATE)) {
+    //     return notRead;
+    // }
     prevReadTime= curTime;
 
     MarvelmindLocationsPack2 posPack;
@@ -115,9 +115,9 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
         MarvelmindDeviceLocation2 pos;
         MarvelmindDevice *mmDevice;
 
-        if (posPack.lastDistUpdated) {
-            marvelmindReadRawDistances();
-        }
+        // if (posPack.lastDistUpdated) {
+        //     marvelmindReadRawDistances();
+        // }
 
         for(i=0;i<MM_LOCATIONS_PACK_SIZE;i++) {
             pos= posPack.pos[i];
@@ -129,21 +129,11 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
                 continue;
 
             if (mmDevice->deviceType == hedgehog) {
-                char angs[64];
-                if (pos.angleReady) {
-                    sprintf(angs, "angle= %.1f",((float) pos.angle)/10.0f);
-                } else {
-                    sprintf(angs, "no angle");
-                }
-                printf("Hedge  %d location: X=%.3f, Y=%.3f, Z=%.3f, %s, quality= %d %%\r\n",
-                       (int) pos.address,
-                       (float) pos.x_mm/1000.0, (float) pos.y_mm/1000.0, (float) pos.z_mm/1000.0,
-                       angs, (int) pos.quality);
-            }
-            else if (mmDevice->deviceType == beacon) {
-                printf("Beacon %d location: X=%.3f, Y=%.3f, Z=%.3f \r\n",
-                       (int) pos.address,
-                       (float) pos.x_mm/1000.0, (float) pos.y_mm/1000.0, (float) pos.z_mm/1000.0);
+                printf("{\"type\": \"position\", \"botIndex\": %d, \"data\": {\"x\": %.3f, \"y\":%.3f, \"quality\": %d}}\r\n",
+                       (int) pos.address - 1,
+                       (float) pos.x_mm/1000.0,
+                       (float) pos.y_mm/1000.0,
+                       (int) pos.quality);
             }
         }//for i
 

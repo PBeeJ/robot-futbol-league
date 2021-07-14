@@ -42,10 +42,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="marvelmind_devices.h" />
-		<Unit filename="marvelmind_example.c">
+		<Unit filename="marvelmind_streamer.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="marvelmind_example.h" />
+		<Unit filename="marvelmind_streamer.h" />
 		<Unit filename="marvelmind_pos.c">
 			<Option compilerVar="CC" />
 		</Unit>
