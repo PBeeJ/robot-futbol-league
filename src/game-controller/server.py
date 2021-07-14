@@ -7,6 +7,8 @@ import websockets
 
 from enum import Enum
 
+# static IPs the router assigns to my macbook and ipad
+# plus '::1' (localhost) for testing and debugging local
 ADMIN_IP_ADDRS = ['::1', '192.168.1.8', '192.168.1.9']
 BALL_IP_ADDR = '192.168.1.3'
 PLAYER_1_IP_ADDR = '192.168.1.4'
@@ -68,17 +70,16 @@ def bounds_message():
 
 async def send_message(websocket, message):
     if websocket and websocket != "all":
-        await asyncio.wait([websocket.send(message) for websocket in SOCKETS])
+        await websocket.send(message)
     elif SOCKETS:  # asyncio.wait doesn't accept an empty list
         await asyncio.wait([websocket.send(message) for websocket in SOCKETS])
 
 
 async def notify_state(websocket="all"):
-    print(f"sending state to {websocket}")
     await send_message(websocket, state_message())
 
 
-async def notify_bounds(websocket):
+async def notify_bounds(websocket="all"):
     await send_message(websocket, bounds_message())
 
 
@@ -98,7 +99,7 @@ def getKnownBot(websocket, data):
     remoteIp = websocket.remote_address[0]
 
     # admins can specify `botIndex` in the messages
-    # that update state
+    # that update bot states
     if remoteIp in ADMIN_IP_ADDRS:
         botIndex = data.get('botIndex')
         if botIndex != None:
@@ -108,17 +109,19 @@ def getKnownBot(websocket, data):
 
 
 async def handleStateRequest(websocket, data):
-    if websocket.remote_address[0] in ADMIN_IP_ADDRS:
-        # TODO : if comming from an admin apply to GAME_STATE
-        pass
-
     await notify_state(websocket)
 
 
 async def handleBoundsRequest(websocket, data):
-    if websocket.remote_address[0] in ADMIN_IP_ADDRS:
-        print(f"got admin bounds request with {data}")
-        # TODO : if comming from an admin apply to GAME_STATE
+    if websocket.remote_address[0] in ADMIN_IP_ADDRS and data:
+        print(f"got admin bounds request with data {data}")
+        bounds = data.get("bounds")
+        if bounds:
+            GAME_BOUNDS = bounds
+            await notify_bounds()  # notify everyone of bounds change
+            return
+        else:
+            print(f"bounds attribute not found in data (ignored)")
 
     await notify_bounds(websocket)
 
@@ -135,6 +138,31 @@ async def handleCompassMessage(websocket, data):
         print(f"got heading message from unknown bot {remoteAddr} (ignoring)")
 
 
+async def handlePositionMessage(websocket, data):
+    remoteIp = websocket.remote_address[0]
+    if remoteIp not in ADMIN_IP_ADDRS:
+        print(
+            f"position message received from non admin IP {remoteIp}; ignoring")
+        return
+
+    knownBot = getKnownBot(websocket, data)
+    if not knownBot:
+        botIndex = data.get('botIndex')
+        print(
+            f"position message received from unknown bot; message.data.botIndex={botIndex}")
+        return
+
+    x = data.get('x')
+    y = data.get('y')
+    if not (x or y):
+        print(f"position message received without x ({x}) or y ({y})")
+        return
+
+    knownBot["x"] = x
+    knownBot["y"] = y
+    GAME_STATE['isDirty'] = True
+
+
 async def handleMessage(websocket, path):
     await register(websocket)
     try:
@@ -145,14 +173,20 @@ async def handleMessage(websocket, path):
             print(
                 f"got {messageType} request from {websocket.remote_address[0]} with {messageData}")
 
+            # {type: "state"}
             if messageType == "state":
                 await handleStateRequest(websocket, messageData)
+            # {type: "bounds", data: {bounds: [-1,1,1,-1]}}
             elif messageType == "bounds":
                 await handleBoundsRequest(websocket, messageData)
+            # {type: "heading", data: {botIndex: 0, heading: 0}}
             elif messageType == "heading":
                 await handleCompassMessage(websocket, messageData)
+            # {type: "position", data: {botIndex: 0, x: 0, y: 0}}
+            elif messageType == "position":
+                await handleCompassMessage(websocket, messageData)
             else:
-                logging.error("unsupported event: %s", jsonData)
+                logging.error("received unsupported message: %s", jsonData)
     finally:
         await unregister(websocket)
 
@@ -167,7 +201,5 @@ async def send_state_task():
 
 start_server = websockets.serve(handleMessage, port=6789)
 asyncio.get_event_loop().run_until_complete(start_server)
-
 asyncio.get_event_loop().create_task(send_state_task())
-
 asyncio.get_event_loop().run_forever()
