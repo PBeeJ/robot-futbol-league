@@ -29,7 +29,7 @@ void marvelmindReadRawDistances() {
 
             MarvelmindDevice *mmDeviceRx= marvelmindUpdateDistance(addressRx, addressTx, dist);
             if (mmDeviceRx != NULL) {
-                printf("Raw distance: %d ==> %d  : %.3f \r\n", (int) addressTx, (int) addressRx, (float) dist/1000.0);
+                fprintf(stderr, "Raw distance: %d ==> %d  : %.3f \r\n", (int) addressTx, (int) addressRx, (float) dist/1000.0);
             }
         }//for i
     }
@@ -73,13 +73,13 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
                 continue;
 
             if (mmDevice->deviceType == hedgehog) {
-                printf("Hedge  %d location: X=%.3f, Y=%.3f, Z=%.3f, quality= %d %%\r\n",
+                fprintf(stderr, "Hedge  %d location: X=%.3f, Y=%.3f, Z=%.3f, quality= %d %%\r\n",
                        (int) pos.address,
                        (float) pos.x_mm/1000.0, (float) pos.y_mm/1000.0, (float) pos.z_mm/1000.0,
                        (int) pos.quality);
             }
             else if (mmDevice->deviceType == beacon) {
-                printf("Beacon %d location: X=%.3f, Y=%.3f, Z=%.3f \r\n",
+                fprintf(stderr, "Beacon %d location: X=%.3f, Y=%.3f, Z=%.3f \r\n",
                        (int) pos.address,
                        (float) pos.x_mm/1000.0, (float) pos.y_mm/1000.0, (float) pos.z_mm/1000.0);
             }
@@ -129,11 +129,12 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
                 continue;
 
             if (mmDevice->deviceType == hedgehog) {
-                printf("{\"type\": \"position\", \"botIndex\": %d, \"data\": {\"x\": %.3f, \"y\":%.3f, \"quality\": %d}}\r\n",
+                fprintf(stdout, "{\"type\": \"position\", \"data\": {\"botIndex\": %d, \"x\": %.3f, \"y\":%.3f, \"quality\": %d}}\r\n",
                        (int) pos.address - 1,
                        (float) pos.x_mm/1000.0,
                        (float) pos.y_mm/1000.0,
                        (int) pos.quality);
+                fflush(stdout);
             }
         }//for i
 

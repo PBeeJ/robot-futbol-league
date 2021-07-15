@@ -14,6 +14,7 @@ BALL_IP_ADDR = '192.168.1.3'
 PLAYER_1_IP_ADDR = '192.168.1.4'
 PLAYER_2_IP_ADDR = '192.168.1.5'
 
+LISTEN_PORT = 6789
 
 class BOT_INDEX(Enum):
     ball_bot: 0
@@ -131,7 +132,7 @@ async def handleCompassMessage(websocket, data):
     remoteAddr = websocket.remote_address[0]
     heading = data.get("heading")
     if knownBot and heading:
-        print(f"got heading message from known bot {knownBot}")
+        # print(f"got heading message from known bot {knownBot}")
         knownBot["heading"] = heading
         GAME_STATE["isDirty"] = True
     else:
@@ -163,15 +164,20 @@ async def handlePositionMessage(websocket, data):
     GAME_STATE['isDirty'] = True
 
 
+async def handleSilenceMessage(websocket):
+    remoteIp = websocket.remote_address[0]
+    # print(f"got shusshed by {remoteIp}")
+    SOCKETS.remove(websocket);
+
+
 async def handleMessage(websocket, path):
     await register(websocket)
     try:
         async for message in websocket:
+            print(message, end='')
             jsonData = json.loads(message)
             messageType = jsonData.get("type")
             messageData = jsonData.get('data')
-            print(
-                f"got {messageType} request from {websocket.remote_address[0]} with {messageData}")
 
             # {type: "state"}
             if messageType == "state":
@@ -184,7 +190,9 @@ async def handleMessage(websocket, path):
                 await handleCompassMessage(websocket, messageData)
             # {type: "position", data: {botIndex: 0, x: 0, y: 0}}
             elif messageType == "position":
-                await handleCompassMessage(websocket, messageData)
+                await handlePositionMessage(websocket, messageData)
+            elif messageType == "silence":
+                await handleSilenceMessage(websocket)
             else:
                 logging.error("received unsupported message: %s", jsonData)
     finally:
@@ -198,8 +206,8 @@ async def send_state_task():
             await notify_state()
         await asyncio.sleep(0)
 
-
-start_server = websockets.serve(handleMessage, port=6789)
+print(f"Starting server on port {LISTEN_PORT}")
+start_server = websockets.serve(handleMessage, port=LISTEN_PORT)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().create_task(send_state_task())
 asyncio.get_event_loop().run_forever()

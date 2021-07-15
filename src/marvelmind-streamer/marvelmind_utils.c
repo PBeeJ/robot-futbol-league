@@ -11,9 +11,9 @@
 
 void printBoolEnabled(char * prefix,bool v) {
     if (v) {
-        printf("%s: enabled\r\n", prefix);
+        fprintf(stderr, "%s: enabled\r\n", prefix);
     } else {
-        printf("%s: disabled\r\n", prefix);
+        fprintf(stderr, "%s: disabled\r\n", prefix);
     }
 }
 
@@ -60,32 +60,32 @@ MMDeviceType getMMDeviceType(uint8_t deviceType) {
 
 // Prints version and ID of the device
 void printMMDeviceVersionAndId(MarvelmindDeviceVersion *dv) {
-    printf("Version: %d.%02d", (int) dv->fwVerMajor, (int) dv->fwVerMinor);
-    printf("%01d", (int) dv->fwVerMinor2);
+    fprintf(stderr, "Version: %d.%02d", (int) dv->fwVerMajor, (int) dv->fwVerMinor);
+    fprintf(stderr, "%01d", (int) dv->fwVerMinor2);
     //if (dv->fwVerMinor2 != 0) {
-    //    printf("%c",(char) (dv->fwVerMinor2+'a' - 1));
+    //    fprintf(stderr, "%c",(char) (dv->fwVerMinor2+'a' - 1));
     //}
-    printf(".%d   CPU ID=%06x", (int) dv->fwVerDeviceType, dv->cpuId);
-    printf("\r\n");
+    fprintf(stderr, ".%d   CPU ID=%06x", (int) dv->fwVerDeviceType, dv->cpuId);
+    fprintf(stderr, "\r\n");
 }
 
 // Prints device type
 void printMMDeviceType(MMDeviceType *dt) {
     switch(*dt) {
         case modem: {
-            printf("Device is modem \r\n");
+            fprintf(stderr, "Device is modem \r\n");
             break;
         }
         case beacon: {
-            printf("Device is beacon \r\n");
+            fprintf(stderr, "Device is beacon \r\n");
             break;
         }
         case hedgehog: {
-            printf("Device is hedgehog \r\n");
+            fprintf(stderr, "Device is hedgehog \r\n");
             break;
         }
         default: {
-            printf("Unknown device type \r\n");
+            fprintf(stderr, "Unknown device type \r\n");
             break;
         }
     }

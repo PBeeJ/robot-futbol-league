@@ -39,12 +39,12 @@ static void updateDevice(uint8_t index, MarvelmindDeviceInfo *info) {
     bool connected= ((info->flags&0x01) != 0);
     mmDevList.devices[index].devConnected= connected;
 
-    printf("Device %d updated\r\n", (int) info->address);
+    fprintf(stderr, "Device %d updated\r\n", (int) info->address);
 
     if (connected) {
         MarvelmindDeviceVersion version;
         if (!mmGetVersionAndId(info->address, &version)) {
-            printf("Failed read version of device: %d\r\n", (int) info->address);
+            fprintf(stderr, "Failed read version of device: %d\r\n", (int) info->address);
             return;
         }
         mmDevList.devices[index].version= version;
@@ -54,9 +54,9 @@ static void updateDevice(uint8_t index, MarvelmindDeviceInfo *info) {
         printMMDeviceType(&mmDevList.devices[index].deviceType);
     } else {
         if (info->isSleeping) {
-            printf("Device %d is sleeping\r\n", (int) info->address);
+            fprintf(stderr, "Device %d is sleeping\r\n", (int) info->address);
         } else {
-            printf("Device %d connecting...\r\n", (int) info->address);
+            fprintf(stderr, "Device %d connecting...\r\n", (int) info->address);
         }
     }
 
@@ -67,7 +67,7 @@ static void updateDevice(uint8_t index, MarvelmindDeviceInfo *info) {
 static void removeDevice(uint8_t index) {
     if (mmDevList.numDevices == 0) return;
 
-    printf("Device updated: %d\r\n", (int) mmDevList.devices[index].info.address);
+    fprintf(stderr, "Device updated: %d\r\n", (int) mmDevList.devices[index].info.address);
 
     uint8_t i;
     mmDevList.numDevices--;
@@ -84,7 +84,7 @@ static void addDevice(MarvelmindDeviceInfo *info) {
         return;
 
     updateDevice(mmDevList.numDevices, info);
-    printf("Device added: %d\r\n", (int) info->address);
+    fprintf(stderr, "Device added: %d\r\n", (int) info->address);
 
     #if MM_LOCATIONS_VERSION==1
     MarvelmindDeviceLocation *ppos= &mmDevList.devices[mmDevList.numDevices].pos;

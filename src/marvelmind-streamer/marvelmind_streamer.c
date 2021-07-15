@@ -32,15 +32,15 @@ static void marvelmindReopenPort() {
 static void switchToConState(ConState newConState) {
     switch(newConState) {
         case waitPort: {
-            printf("Waiting for port...\r\n");
+            fprintf(stderr, "Waiting for port...\r\n");
             break;
         }
         case waitDevice: {
-            printf("Trying connect to device...\r\n");
+            fprintf(stderr, "Trying connect to device...\r\n");
             break;
         }
         case connected: {
-            printf("Device is connected via USB.\r\n");
+            fprintf(stderr, "Device is connected via USB.\r\n");
             printMMDeviceVersionAndId(&usbDevVersion);
 
             deviceTypeUSB= getMMDeviceType(usbDevVersion.fwVerDeviceType);

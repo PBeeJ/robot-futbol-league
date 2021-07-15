@@ -9,7 +9,7 @@ import websockets
 from random import randrange
 
 
-GAME_CONTROLLER_URI = "ws://localhost:6789"
+GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
 GAME_BOUNDS = [-8, 4, 8, -4]
 GAME_STATE = None
 
@@ -37,6 +37,7 @@ def get_compass_heading():
 
 
 async def send_heading_task(websocket):
+    global COMPASS_HEADING
     while True:
         newHeading = get_compass_heading()
         if newHeading > COMPASS_HEADING + 1 or newHeading < COMPASS_HEADING - 1:
