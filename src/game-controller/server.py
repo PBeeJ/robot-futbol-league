@@ -16,11 +16,13 @@ PLAYER_2_IP_ADDR = '192.168.1.5'
 
 LISTEN_PORT = 6789
 
+
 class BOT_INDEX(Enum):
     ball_bot: 0
     player_1: 1
     player_2: 2
 
+NUMBER_OF_BOTS: 3
 
 logging.basicConfig()
 
@@ -93,8 +95,10 @@ async def register(websocket):
 
 async def unregister(websocket):
     print(f"lost connection {websocket.remote_address[0]}")
-    SOCKETS.remove(websocket)
-
+    try:
+        SOCKETS.remove(websocket)
+    except:
+        pass
 
 def getKnownBot(websocket, data):
     remoteIp = websocket.remote_address[0]
@@ -140,41 +144,47 @@ async def handleCompassMessage(websocket, data):
 
 
 async def handlePositionMessage(websocket, data):
+    handlePositionsMessage(websocket, [data])
+
+async def handlePositionsMessage(websocket, data):
     remoteIp = websocket.remote_address[0]
     if remoteIp not in ADMIN_IP_ADDRS:
         print(
             f"position message received from non admin IP {remoteIp}; ignoring")
         return
 
-    knownBot = getKnownBot(websocket, data)
-    if not knownBot:
-        botIndex = data.get('botIndex')
-        print(
-            f"position message received from unknown bot; message.data.botIndex={botIndex}")
-        return
+    for positionData in data:
+        botIndex = positionData["botIndex"]
+        if botIndex < 0 or botIndex >= 3:
+            print(f"received message from invalid bot index ({botIndex})")
+            continue
+        knownBot = GAME_STATE["bots"][botIndex]
 
-    x = data.get('x')
-    y = data.get('y')
-    if not (x or y):
-        print(f"position message received without x ({x}) or y ({y})")
-        return
+        x = positionData.get('x')
+        y = positionData.get('y')
+        if not (x or y):
+            print(f"position message received without x ({x}) or y ({y})")
+            return
 
-    knownBot["x"] = x
-    knownBot["y"] = y
+        knownBot["x"] = x
+        knownBot["y"] = y
+
     GAME_STATE['isDirty'] = True
 
-
 async def handleSilenceMessage(websocket):
-    remoteIp = websocket.remote_address[0]
+    # remoteIp = websocket.remote_address[0]
     # print(f"got shusshed by {remoteIp}")
-    SOCKETS.remove(websocket);
+    try:
+        SOCKETS.remove(websocket);
+    except:
+        pass
 
 
 async def handleMessage(websocket, path):
     await register(websocket)
     try:
         async for message in websocket:
-            print(message, end='')
+            print(message)
             jsonData = json.loads(message)
             messageType = jsonData.get("type")
             messageData = jsonData.get('data')
@@ -191,8 +201,12 @@ async def handleMessage(websocket, path):
             # {type: "position", data: {botIndex: 0, x: 0, y: 0}}
             elif messageType == "position":
                 await handlePositionMessage(websocket, messageData)
+            elif messageType == "positions":
+                await handlePositionsMessage(websocket, messageData)
             elif messageType == "silence":
                 await handleSilenceMessage(websocket)
+            elif messageType == "heartbeat":
+                pass
             else:
                 logging.error("received unsupported message: %s", jsonData)
     finally:

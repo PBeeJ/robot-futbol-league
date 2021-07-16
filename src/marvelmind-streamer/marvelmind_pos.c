@@ -129,14 +129,14 @@ MMPosReadStatus marvelmindLocationsReadIfNeeded() {
                 continue;
 
             if (mmDevice->deviceType == hedgehog) {
-                fprintf(stdout, "{\"type\": \"position\", \"data\": {\"botIndex\": %d, \"x\": %.3f, \"y\":%.3f, \"quality\": %d}}\r\n",
+                fprintf(stdout, "{\"botIndex\": %d, \"x\": %.3f, \"y\":%.3f, \"quality\": %d}\n",
                        (int) pos.address - 1,
                        (float) pos.x_mm/1000.0,
                        (float) pos.y_mm/1000.0,
                        (int) pos.quality);
-                fflush(stdout);
             }
         }//for i
+        fflush(stdout);
 
         return readSuccess;
     }

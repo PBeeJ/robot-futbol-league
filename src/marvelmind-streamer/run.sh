@@ -1,0 +1,1 @@
+./marvelmind_streamer | python3 ./ws_client.py
