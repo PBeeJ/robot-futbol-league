@@ -22,6 +22,7 @@ class BOT_INDEX(Enum):
     player_1: 1
     player_2: 2
 
+
 NUMBER_OF_BOTS: 3
 
 logging.basicConfig()
@@ -58,7 +59,13 @@ KNOWN_BOTS = {
 }
 
 # aabb of playing field
-GAME_BOUNDS = [-8, 4, 8, -4]
+GAME_CONFIG = {
+    # The playing field config with origin at exactly midfield
+    "bounds": [-8, 4, 8, -4],
+    # This is the difference between magnetic north and the playing field
+    # north vector  0,0 -> 0,n
+    "headingOffset": 28
+}
 
 SOCKETS = set()
 
@@ -67,8 +74,8 @@ def state_message():
     return json.dumps({"type": "state", "data": GAME_STATE})
 
 
-def bounds_message():
-    return json.dumps({"type": "bounds", "data": GAME_BOUNDS})
+def config_message():
+    return json.dumps({"type": "config", "data": GAME_CONFIG})
 
 
 async def send_message(websocket, message):
@@ -82,14 +89,14 @@ async def notify_state(websocket="all"):
     await send_message(websocket, state_message())
 
 
-async def notify_bounds(websocket="all"):
-    await send_message(websocket, bounds_message())
+async def notify_config(websocket="all"):
+    await send_message(websocket, config_message())
 
 
 async def register(websocket):
     print(f"got new connection from {websocket.remote_address[0]}")
     SOCKETS.add(websocket)
-    await notify_bounds(websocket)
+    await notify_config(websocket)
     await notify_state(websocket)
 
 
@@ -100,7 +107,8 @@ async def unregister(websocket):
     except:
         pass
 
-def getKnownBot(websocket, data):
+
+def get_known_bot(websocket, data):
     remoteIp = websocket.remote_address[0]
 
     # admins can specify `botIndex` in the messages
@@ -117,22 +125,27 @@ async def handleStateRequest(websocket, data):
     await notify_state(websocket)
 
 
-async def handleBoundsRequest(websocket, data):
+async def handleConfigRequest(websocket, data):
     if websocket.remote_address[0] in ADMIN_IP_ADDRS and data:
-        print(f"got admin bounds request with data {data}")
+        print(f"got admin config request with data {data}")
         bounds = data.get("bounds")
         if bounds:
-            GAME_BOUNDS = bounds
-            await notify_bounds()  # notify everyone of bounds change
-            return
-        else:
-            print(f"bounds attribute not found in data (ignored)")
+            GAME_CONFIG.bounds = bounds
 
-    await notify_bounds(websocket)
+        headingOffset = data.get("headingOffset")
+        if headingOffset:
+            GAME_CONFIG.headingOffset = headingOffset
+
+        if headingOffset or bounds:
+            await notify_config()  # notify everyone of config change
+        else:
+            print("warn: got empty config request")
+    else:
+        await notify_config(websocket)
 
 
 async def handleCompassMessage(websocket, data):
-    knownBot = getKnownBot(websocket, data)
+    knownBot = get_known_bot(websocket, data)
     remoteAddr = websocket.remote_address[0]
     heading = data.get("heading")
     if knownBot and heading:
@@ -145,6 +158,7 @@ async def handleCompassMessage(websocket, data):
 
 async def handlePositionMessage(websocket, data):
     handlePositionsMessage(websocket, [data])
+
 
 async def handlePositionsMessage(websocket, data):
     remoteIp = websocket.remote_address[0]
@@ -171,11 +185,12 @@ async def handlePositionsMessage(websocket, data):
 
     GAME_STATE['isDirty'] = True
 
+
 async def handleSilenceMessage(websocket):
     # remoteIp = websocket.remote_address[0]
     # print(f"got shusshed by {remoteIp}")
     try:
-        SOCKETS.remove(websocket);
+        SOCKETS.remove(websocket)
     except:
         pass
 
@@ -192,9 +207,9 @@ async def handleMessage(websocket, path):
             # {type: "state"}
             if messageType == "state":
                 await handleStateRequest(websocket, messageData)
-            # {type: "bounds", data: {bounds: [-1,1,1,-1]}}
-            elif messageType == "bounds":
-                await handleBoundsRequest(websocket, messageData)
+            # {type: "config", data: {config: [-1,1,1,-1]}}
+            elif messageType == "config":
+                await handleConfigRequest(websocket, messageData)
             # {type: "heading", data: {botIndex: 0, heading: 0}}
             elif messageType == "heading":
                 await handleCompassMessage(websocket, messageData)

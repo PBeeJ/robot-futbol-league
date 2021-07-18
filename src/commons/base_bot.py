@@ -9,13 +9,14 @@ from commons import compass
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
-GAME_BOUNDS = [-8, 4, 8, -4]
+GAME_CONFIG = [-8, 4, 8, -4]
 GAME_STATE = None
 
 COMPASS_HEADING = -2
 
 controller_socket = None
 movement_callback = None
+
 
 def start(passed_movement_callback):
     global movement_callback
@@ -25,7 +26,7 @@ def start(passed_movement_callback):
 
 async def state_update_task():
     global GAME_STATE
-    global GAME_BOUNDS
+    global GAME_CONFIG
     global controller_socket
 
     while True:
@@ -40,8 +41,8 @@ async def state_update_task():
                     message_data = data.get("data")
                     if message_type == "state":
                         GAME_STATE = message_data
-                    elif message_type == "bounds":
-                        GAME_BOUNDS = "bounds"
+                    elif message_type == "config":
+                        GAME_CONFIG = "config"
                     await asyncio.sleep(0)
         except:
             pass
@@ -71,7 +72,8 @@ async def send_heading_task():
                 try:
                     await controller_socket.send(message)
                 except:
-                    print("socket error in send_heading_task:", sys.exc_info()[0])
+                    print("socket error in send_heading_task:",
+                          sys.exc_info()[0])
 
         await asyncio.sleep(.25)
 
@@ -82,8 +84,7 @@ async def movement_task():
     while True:
         await asyncio.sleep(.05)
         if movement_callback:
-            movement_callback();
-
+            movement_callback()
 
 
 async def basic_bot():
@@ -92,4 +93,3 @@ async def basic_bot():
     movementTask = asyncio.create_task(movement_task())
 
     await asyncio.wait([recvTask, sendHeadingTask, movementTask])
-
