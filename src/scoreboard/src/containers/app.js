@@ -6,8 +6,8 @@ import { startClient } from "websockets";
 import { updateGameConfig } from "modules/gameConfig";
 import { updateGameState } from "modules/gameState";
 
-import Home from "../home";
-import About from "../about";
+import Home from "containers/home";
+import Admin from "containers/admin";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -31,14 +31,11 @@ const App = () => {
 
   return (
     <div>
-      <header>
-        <Link to="/">Home</Link>
-        <Link to="/about-us">About</Link>
-      </header>
+      <header></header>
 
       <main>
         <Route exact path="/" component={Home} />
-        <Route exact path="/about-us" component={About} />
+        <Route exact path="/admin" component={Admin} />
       </main>
     </div>
   );

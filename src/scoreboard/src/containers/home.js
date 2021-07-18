@@ -9,29 +9,6 @@ import { Container } from "@material-ui/core";
 const Home = (props) => (
   <Container>
     <h1>Robot Futbol League</h1>
-    <b>Robots</b>
-    {props.gameState && (
-      <table>
-        <thead>
-          <tr>
-            <th width="100">name</th>
-            <th width="60">x</th>
-            <th width="60">y</th>
-            <th width="80">heading</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.gameState.bots.map((bot) => (
-            <tr key={bot.name}>
-              <td>{bot.name}</td>
-              <td>{bot.x}</td>
-              <td>{bot.y}</td>
-              <td>{bot.heading}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    )}
   </Container>
 );
 
