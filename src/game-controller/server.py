@@ -9,7 +9,7 @@ from enum import Enum
 
 # static IPs the router assigns to my macbook and ipad
 # plus '::1' (localhost) for testing and debugging local
-ADMIN_IP_ADDRS = ['::1', '192.168.1.8', '192.168.1.9']
+ADMIN_IP_ADDRS = ['::1', '127.0.0.1', '192.168.1.8', '192.168.1.9']
 BALL_IP_ADDR = '192.168.1.3'
 PLAYER_1_IP_ADDR = '192.168.1.4'
 PLAYER_2_IP_ADDR = '192.168.1.5'
@@ -18,12 +18,20 @@ LISTEN_PORT = 6789
 
 
 class BOT_INDEX(Enum):
-    ball_bot: 0
-    player_1: 1
-    player_2: 2
+    ball_bot = 0
+    player_1 = 1
+    player_2 = 2
 
 
-NUMBER_OF_BOTS: 3
+VALID_BOT_INDEXES = set(item.value for item in BOT_INDEX)
+
+
+class BOT_MODE(Enum):
+    auto = 0
+    manual = 1
+
+
+VALID_BOT_MODES = set(item.value for item in BOT_MODE)
 
 logging.basicConfig()
 
@@ -34,19 +42,40 @@ GAME_STATE = {
     },
     "bots": [{
         "name": "ball-bot",
+        "index": 0,
+        "mode": 0,
         "x": 0,
         "y": 0,
-        "heading": 0
+        "heading": 0,
+        "manualPosition": {
+            "x": 0,
+            "y": 0,
+            "heading": 0
+        }
     }, {
         "name": "player-1",
+        "index": 1,
+        "mode": 0,
         "x": 0,
         "y": 0,
         "heading": 0,
+        "manualPosition": {
+            "x": 0,
+            "y": 0,
+            "heading": 0
+        }
     }, {
         "name": "player-2",
+        "index": 2,
+        "mode": 0,
         "x": 0,
         "y": 0,
         "heading": 0,
+        "manualPosition": {
+            "x": 0,
+            "y": 0,
+            "heading": 0
+        }
     }],
     "scores": [0, 0],
     "isDirty": False,
@@ -60,8 +89,18 @@ KNOWN_BOTS = {
 
 # aabb of playing field
 GAME_CONFIG = {
-    # The playing field config with origin at exactly midfield
-    "bounds": [-8, 4, 8, -4],
+    # The position info, bounds and other data are in units
+    "centimetersPerUnit": 24,
+
+    # The playing field bounding box, in units with origin at exactly midfield.
+    # So the "field" for Electric Sky is 16' long x 8' wide.
+    # 8' = 243cm / centerimetersPerUnit = 10 with 6cm left over
+    "bounds": [-10, 5, 10, -5],
+
+    # The width of the endzone in units
+    "endzoneWidth": 3,
+
+
     # This is the difference between magnetic north and the playing field
     # north vector  0,0 -> 0,n
     "headingOffset": 28
@@ -76,6 +115,23 @@ def state_message():
 
 def config_message():
     return json.dumps({"type": "config", "data": GAME_CONFIG})
+
+
+def iseeu_message(websocket):
+    global KNOWN_BOTS
+    global ADMIN_IP_ADDRS
+
+    remoteIp = websocket.remote_address[0]
+    knownBot = KNOWN_BOTS.get(remoteIp)
+    isAdmin = remoteIp in ADMIN_IP_ADDRS
+    return json.dumps({
+        "type": "iseeu",
+        "data": {
+            "ip": remoteIp,
+            "isAdmin": isAdmin,
+            "knownBot": knownBot
+        }
+    })
 
 
 async def send_message(websocket, message):
@@ -93,11 +149,20 @@ async def notify_config(websocket="all"):
     await send_message(websocket, config_message())
 
 
+# NOTE that there is no "all" option here, need a websocket,
+#  ye shall not ever broadcast this info
+async def notify_iseeu(websocket):
+    if not websocket or websocket == "all":
+        return
+    await send_message(websocket, iseeu_message(websocket))
+
+
 async def register(websocket):
     print(f"got new connection from {websocket.remote_address[0]}")
     SOCKETS.add(websocket)
     await notify_config(websocket)
     await notify_state(websocket)
+    await notify_iseeu(websocket)
 
 
 async def unregister(websocket):
@@ -115,10 +180,28 @@ def get_known_bot(websocket, data):
     # that update bot states
     if remoteIp in ADMIN_IP_ADDRS:
         botIndex = data.get('botIndex')
-        if botIndex != None:
+        if is_valid_bot_index(botIndex):
             return GAME_STATE["bots"][botIndex]
 
     return KNOWN_BOTS.get(remoteIp)
+
+
+def is_valid_bot_index(index):
+    return index in VALID_BOT_INDEXES
+
+
+def is_admin(websocket):
+    remoteIp = websocket.remote_address[0]
+    return remoteIp in ADMIN_IP_ADDRS
+
+
+def validate_admin(websocket, attemptedAction):
+    if not is_admin(websocket):
+        print(
+            f"{attemptedAction} attempted by non admin IP {websocket.remote_address[0]}; ignoring")
+        return False
+
+    return True
 
 
 async def handleStateRequest(websocket, data):
@@ -126,20 +209,19 @@ async def handleStateRequest(websocket, data):
 
 
 async def handleConfigRequest(websocket, data):
-    if websocket.remote_address[0] in ADMIN_IP_ADDRS and data:
-        print(f"got admin config request with data {data}")
-        bounds = data.get("bounds")
-        if bounds:
-            GAME_CONFIG.bounds = bounds
+    if is_admin(websocket) and data:
+        print(f"got admin config request from admin with data {data}")
+        didUpdate = False
+        for attribute in dir(GAME_CONFIG):
+            value = data.get(attribute)
+            if value:
+                GAME_CONFIG[attribute] = value
+                didUpdate = True
 
-        headingOffset = data.get("headingOffset")
-        if headingOffset:
-            GAME_CONFIG.headingOffset = headingOffset
-
-        if headingOffset or bounds:
+        if didUpdate:
             await notify_config()  # notify everyone of config change
         else:
-            print("warn: got empty config request")
+            print(f"warn: got config request without change {data}")
     else:
         await notify_config(websocket)
 
@@ -161,28 +243,78 @@ async def handlePositionMessage(websocket, data):
 
 
 async def handlePositionsMessage(websocket, data):
-    remoteIp = websocket.remote_address[0]
-    if remoteIp not in ADMIN_IP_ADDRS:
-        print(
-            f"position message received from non admin IP {remoteIp}; ignoring")
+    global BOT_MODE
+
+    if not validate_admin(websocket, 'positions update'):
         return
+
+    didUpdate = False
 
     for positionData in data:
         botIndex = positionData["botIndex"]
-        if botIndex < 0 or botIndex >= 3:
-            print(f"received message from invalid bot index ({botIndex})")
+        if not is_valid_bot_index(botIndex):
+            print(
+                f"received position message from invalid bot index ({botIndex})")
             continue
         knownBot = GAME_STATE["bots"][botIndex]
 
-        x = positionData.get('x')
-        y = positionData.get('y')
-        if not (x or y):
-            print(f"position message received without x ({x}) or y ({y})")
+        rawX = positionData.get('x')
+        rawY = positionData.get('y')
+        if not (rawX and rawY):
+            print(
+                f"position message received without x ({rawX}) or y ({rawY})")
             return
 
-        knownBot["x"] = x
-        knownBot["y"] = y
+        # The positioning streamer gives us x, y in meters
+        # We store position in game units
+        cmPerUnit = GAME_CONFIG["centimetersPerUnit"]
+        x = (rawX * 100) // cmPerUnit  # // = divide and floor
+        y = (rawY * 100) // cmPerUnit
 
+        if x != knownBot["x"] or y != knownBot["y"]:
+            didUpdate = True
+            knownBot["x"] = x
+            knownBot["y"] = y
+
+    if didUpdate:
+        GAME_STATE['isDirty'] = True
+
+
+async def handleManualPositionMessage(websocket, data):
+    if not validate_admin(websocket, "manual position update"):
+        return
+
+    known_bot = get_known_bot(websocket, data)
+    if not known_bot:
+        botIndex = data["botIndex"]
+        print(
+            f"got manual position message for unknown bot. botIndex={botIndex}")
+        return
+
+    # TODO : validate within bounds
+    position = known_bot["manualPosition"]
+    position["x"] = data["x"]
+    position["y"] = data["y"]
+    position["heading"] = data["heading"]
+
+    GAME_STATE["isDirty"] = True
+
+
+async def handleBotModeMessage(websocket, data):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    botIndex = data["botIndex"]
+    if not is_valid_bot_index(botIndex):
+        print(f"botMode message received for invalid botIndex {botIndex}")
+        return
+
+    mode = data["mode"]
+    if not mode in VALID_BOT_MODES:
+        print(f"Invalid mode {mode} received for botMode message")
+        return
+
+    GAME_STATE["bots"][botIndex]["mode"] = mode
     GAME_STATE['isDirty'] = True
 
 
@@ -218,6 +350,10 @@ async def handleMessage(websocket, path):
                 await handlePositionMessage(websocket, messageData)
             elif messageType == "positions":
                 await handlePositionsMessage(websocket, messageData)
+            elif messageType == "manualPosition":
+                await handleManualPositionMessage(websocket, messageData)
+            elif messageType == "botMode":
+                await handleBotModeMessage(websocket, messageData)
             elif messageType == "silence":
                 await handleSilenceMessage(websocket)
             elif messageType == "heartbeat":

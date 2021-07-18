@@ -11,6 +11,7 @@ from commons import compass
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
 GAME_CONFIG = [-8, 4, 8, -4]
 GAME_STATE = None
+WHO_AM_I = None
 
 COMPASS_HEADING = -2
 
@@ -27,6 +28,7 @@ def start(passed_movement_callback):
 async def state_update_task():
     global GAME_STATE
     global GAME_CONFIG
+    global WHO_AM_I
     global controller_socket
 
     while True:
@@ -42,7 +44,9 @@ async def state_update_task():
                     if message_type == "state":
                         GAME_STATE = message_data
                     elif message_type == "config":
-                        GAME_CONFIG = "config"
+                        GAME_CONFIG = message_data
+                    elif message_type == "iseeu":
+                        WHO_AM_I = message_data
                     await asyncio.sleep(0)
         except:
             pass
@@ -80,10 +84,19 @@ async def send_heading_task():
 
 async def movement_task():
     global movement_callback
+    global WHO_AM_I
 
     while True:
         await asyncio.sleep(.05)
-        if movement_callback:
+        # we need to stop calling movement callback if we are in manual
+        # positioning mode
+        botMode = 0
+        if WHO_AM_I:
+            knownBot = WHO_AM_I["knownBot"]
+            if knownBot:
+                botMode = knownBot["mode"]
+
+        if botMode == 0 and movement_callback:
             movement_callback()
 
 
