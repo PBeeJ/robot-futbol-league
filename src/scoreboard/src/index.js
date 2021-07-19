@@ -1,8 +1,7 @@
 import React from "react";
 
 import { ThemeProvider } from "@material-ui/styles";
-import { createTheme } from "@material-ui/core/styles";
-import "fontsource-roboto";
+import { createTheme, responsiveFontSizes } from "@material-ui/core/styles";
 
 import { render } from "react-dom";
 import { Provider } from "react-redux";
@@ -14,8 +13,7 @@ import App from "containers/app";
 import "sanitize.css/sanitize.css";
 import "./index.css";
 
-const theme = createTheme({});
-
+const theme = responsiveFontSizes(createTheme());
 const target = document.querySelector("#root");
 
 render(
