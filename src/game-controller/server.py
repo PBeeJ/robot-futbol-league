@@ -5,7 +5,8 @@ import json
 import asyncio
 import websockets
 
-from enum import Enum
+from commons import enums
+
 
 # static IPs the router assigns to my macbook and ipad
 # plus '::1' (localhost) for testing and debugging local
@@ -17,22 +18,6 @@ PLAYER_2_IP_ADDR = '192.168.1.5'
 LISTEN_PORT = 6789
 
 
-class BOT_INDEX(Enum):
-    ball_bot = 0
-    player_1 = 1
-    player_2 = 2
-
-
-VALID_BOT_INDEXES = set(item.value for item in BOT_INDEX)
-
-
-class BOT_MODE(Enum):
-    auto = 0
-    manual = 1
-
-
-VALID_BOT_MODES = set(item.value for item in BOT_MODE)
-
 logging.basicConfig()
 
 GAME_STATE = {
@@ -43,7 +28,9 @@ GAME_STATE = {
     "bots": [{
         "name": "ball-bot",
         "index": 0,
-        "mode": 0,
+        # bots start in manual mode, when gameStatus.state equals anything
+        # other than
+        "mode": 1,
         "x": 0,
         "y": 0,
         "heading": 0,
@@ -55,7 +42,7 @@ GAME_STATE = {
     }, {
         "name": "player-1",
         "index": 1,
-        "mode": 0,
+        "mode": 1,
         "x": 0,
         "y": 0,
         "heading": 0,
@@ -67,7 +54,7 @@ GAME_STATE = {
     }, {
         "name": "player-2",
         "index": 2,
-        "mode": 0,
+        "mode": 1,
         "x": 0,
         "y": 0,
         "heading": 0,
@@ -187,7 +174,7 @@ def get_known_bot(websocket, data):
 
 
 def is_valid_bot_index(index):
-    return index in VALID_BOT_INDEXES
+    return index in enums.VALID_BOT_INDEXES
 
 
 def is_admin(websocket):
@@ -243,7 +230,7 @@ async def handlePositionMessage(websocket, data):
 
 
 async def handlePositionsMessage(websocket, data):
-    global BOT_MODE
+    global BOT_MODES
 
     if not validate_admin(websocket, 'positions update'):
         return
@@ -310,7 +297,7 @@ async def handleBotModeMessage(websocket, data):
         return
 
     mode = data["mode"]
-    if not mode in VALID_BOT_MODES:
+    if not mode in enums.VALID_BOT_MODES:
         print(f"Invalid mode {mode} received for botMode message")
         return
 
@@ -339,7 +326,7 @@ async def handleMessage(websocket, path):
             # {type: "state"}
             if messageType == "state":
                 await handleStateRequest(websocket, messageData)
-            # {type: "config", data: {config: [-1,1,1,-1]}}
+            # {type: "config", data: {...}
             elif messageType == "config":
                 await handleConfigRequest(websocket, messageData)
             # {type: "heading", data: {botIndex: 0, heading: 0}}

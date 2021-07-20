@@ -19,14 +19,14 @@ export const H3 = styled(Typography).attrs((props) => ({
   variant: "h3",
   ...props,
 }))`
-  // add additional styling here
+  text-transform: none;
 `;
 
 export const H4 = styled(Typography).attrs((props) => ({
   variant: "h4",
   ...props,
 }))`
-  // add additional styling here
+  text-transform: none;
 `;
 
 export const H5 = styled(Typography).attrs((props) => ({

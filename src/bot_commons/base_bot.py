@@ -9,11 +9,12 @@ from commons import compass
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
-GAME_CONFIG = [-8, 4, 8, -4]
+
+GAME_CONFIG = None
 GAME_STATE = None
 WHO_AM_I = None
 
-COMPASS_HEADING = -2
+COMPASS_HEADING = 0
 
 controller_socket = None
 movement_callback = None

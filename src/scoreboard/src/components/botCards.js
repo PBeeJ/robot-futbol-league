@@ -13,7 +13,7 @@ export function BotCards(props) {
           <H2>Robots</H2>
         </Grid>
         {props.bots.map((bot) => (
-          <Grid item>
+          <Grid item key={bot.name}>
             <BotCard bot={bot} />
           </Grid>
         ))}

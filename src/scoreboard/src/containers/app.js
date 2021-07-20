@@ -24,7 +24,7 @@ const App = () => {
       case "config":
         dispatch(updateGameConfig(data));
         break;
-      case "whoAmI":
+      case "iseeu":
         dispatch(updateWhoAmI(data));
         break;
       default:

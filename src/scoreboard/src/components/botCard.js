@@ -5,7 +5,7 @@ import { P, Em, FlexRow, Card, FlexCell } from "components/styledComponents";
 
 export function BotCard({ bot }) {
   return (
-    <Container $botMode={bot.mode}>
+    <OurContainer $botMode={bot.mode}>
       <div>
         <Em>{bot.name}</Em>
       </div>
@@ -19,11 +19,11 @@ export function BotCard({ bot }) {
           <P>{bot.heading}°</P>
         </FlexCell>
       </FlexRow>
-    </Container>
+    </OurContainer>
   );
 }
 
-const Container = styled(Card)`
+const OurContainer = styled(Card)`
   background-color: ${(props) =>
     props.$botMode === 0
       ? "rgba(0, 128, 28, .5)"
