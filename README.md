@@ -10,7 +10,7 @@ The game is simple. Each player-bot has a goal they defend (keep ball out of) an
 
 For Electric Sky 2021, the playing field will be 8' x 16' with a 2' at either end making up the goals. The bots are about 21cm squared. `game-controller` breaks up the playing field into 24cm sq game units of measure producing a 10 x 20 unit coordinate system. Origin is at exactly mid-field.
 
-![The playing field](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/playingField.png)
+![The playing field](https://github.com/littlebee/robot-futbol-league/blob/master/docs/playingField.png)
 
 ## The components
 
@@ -48,8 +48,8 @@ This is the code to hack. The default implementation here is pretty dumb. It sim
 
 ## The network
 
-![the network](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/network.png)
+![the network](https://github.com/littlebee/robot-futbol-league/blob/master/docs/network.png)
 
 ## The Positioning System
 
-![the positioning system](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/positioningSystem.png)
+![the positioning system](https://github.com/littlebee/robot-futbol-league/blob/master/docs/positioningSystem.png)
