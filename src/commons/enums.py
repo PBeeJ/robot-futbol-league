@@ -12,7 +12,7 @@ class GAME_STATES(Enum):
     # the clock should be paused
     game_paused = 2
     # in this state, all bots should return to home
-    going_home = 3
+    return_home = 3
 
 
 VALID_GAME_STATES = set(item.value for item in GAME_STATES)

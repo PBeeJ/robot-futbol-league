@@ -31,3 +31,28 @@ function handleMessage(event) {
   const data = JSON.parse(event.data);
   onMessage(data);
 }
+
+function sendMessage(obj) {
+  return ws.send(JSON.stringify(obj));
+}
+
+export function sendGameStart() {
+  return sendMessage({ type: "gameStart" });
+}
+
+export function sendGameStop() {
+  return sendMessage({ type: "gameStop" });
+}
+
+export function sendGamePause() {
+  console.log("sending gamePause");
+  return sendMessage({ type: "gamePause" });
+}
+
+export function sendGameResume() {
+  return sendMessage({ type: "gameResume" });
+}
+
+export function sendReturnToHome() {
+  return sendMessage({ type: "gameReturnToHome" });
+}

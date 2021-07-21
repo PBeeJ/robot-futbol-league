@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+from enum import auto
 import sys
 import json
 import asyncio
 import websockets
 
-from commons import compass
+from commons import enums
+from bot_commons import compass
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
@@ -24,6 +26,14 @@ def start(passed_movement_callback):
     global movement_callback
     movement_callback = passed_movement_callback
     asyncio.run(basic_bot())
+
+
+async def basic_bot():
+    recvTask = asyncio.create_task(state_update_task())
+    sendHeadingTask = asyncio.create_task(send_heading_task())
+    movementTask = asyncio.create_task(movement_task())
+
+    await asyncio.wait([recvTask, sendHeadingTask, movementTask])
 
 
 async def state_update_task():
@@ -89,21 +99,25 @@ async def movement_task():
 
     while True:
         await asyncio.sleep(.05)
-        # we need to stop calling movement callback if we are in manual
-        # positioning mode
-        botMode = 0
-        if WHO_AM_I:
-            knownBot = WHO_AM_I["knownBot"]
-            if knownBot:
-                botMode = knownBot["mode"]
 
-        if botMode == 0 and movement_callback:
+        knownBot = WHO_AM_I and WHO_AM_I["knownBot"]
+        botMode = enums.BOT_MODES.manual.value if not knownBot else knownBot["mode"]
+        gameState = GAME_STATE["gameStatus"]["state"]
+
+        if should_call_movement_callback(botMode, gameState):
             movement_callback()
+        elif botMode == enums.BOT_MODES.manual.value:
+            # TODO : move to GAME_STATE[knownBot[index]]["manualPosition"]
+            pass
+        elif gameState == enums.GAME_STATES.going_home.value:
+            if knownBot:
+                # TODO : move to GAME_CONFIG["botHomes"][knownBot.index]
+                pass
 
 
-async def basic_bot():
-    recvTask = asyncio.create_task(state_update_task())
-    sendHeadingTask = asyncio.create_task(send_heading_task())
-    movementTask = asyncio.create_task(movement_task())
-
-    await asyncio.wait([recvTask, sendHeadingTask, movementTask])
+def should_call_movement_callback(botMode, gameState):
+    return (
+        movement_callback and
+        botMode == enums.BOT_MODES.auto.value and
+        gameState == enums.GAME_STATES.game_on.value
+    )

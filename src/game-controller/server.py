@@ -5,103 +5,11 @@ import json
 import asyncio
 import websockets
 
+import data as DataStore
 from commons import enums
 
 
-# static IPs the router assigns to my macbook and ipad
-# plus '::1' (localhost) for testing and debugging local
-ADMIN_IP_ADDRS = ['::1', '127.0.0.1', '192.168.1.8', '192.168.1.9']
-BALL_IP_ADDR = '192.168.1.3'
-PLAYER_1_IP_ADDR = '192.168.1.4'
-PLAYER_2_IP_ADDR = '192.168.1.5'
-
-LISTEN_PORT = 6789
-
-
 logging.basicConfig()
-
-GAME_STATE = {
-    "gameStatus": {
-        "state": "GAME_OVER",
-        "secondsRemaining": 0,
-    },
-    "bots": [{
-        "name": "ball-bot",
-        "index": 0,
-        # bots start in manual mode, when gameStatus.state equals anything
-        # other than
-        "mode": 1,
-        "x": 0,
-        "y": 0,
-        "heading": 0,
-        "manualPosition": {
-            "x": 0,
-            "y": 0,
-            "heading": 0
-        }
-    }, {
-        "name": "player-1",
-        "index": 1,
-        "mode": 1,
-        "x": 0,
-        "y": 0,
-        "heading": 0,
-        "manualPosition": {
-            "x": 0,
-            "y": 0,
-            "heading": 0
-        }
-    }, {
-        "name": "player-2",
-        "index": 2,
-        "mode": 1,
-        "x": 0,
-        "y": 0,
-        "heading": 0,
-        "manualPosition": {
-            "x": 0,
-            "y": 0,
-            "heading": 0
-        }
-    }],
-    "scores": [0, 0],
-    "isDirty": False,
-}
-
-KNOWN_BOTS = {
-    BALL_IP_ADDR: GAME_STATE["bots"][0],
-    PLAYER_1_IP_ADDR: GAME_STATE["bots"][1],
-    PLAYER_2_IP_ADDR: GAME_STATE["bots"][2]
-}
-
-# aabb of playing field
-GAME_CONFIG = {
-    # The position info, bounds and other data are in units
-    "centimetersPerUnit": 24,
-
-    # The playing field bounding box, in units with origin at exactly midfield.
-    # So the "field" for Electric Sky is 16' long x 8' wide.
-    # 8' = 243cm / centerimetersPerUnit = 10 with 6cm left over
-    "bounds": [-10, 5, 10, -5],
-
-    # The width of the endzone in units
-    "endzoneWidth": 3,
-
-
-    # This is the difference between magnetic north and the playing field
-    # north vector  0,0 -> 0,n
-    "headingOffset": 28
-}
-
-SOCKETS = set()
-
-
-def state_message():
-    return json.dumps({"type": "state", "data": GAME_STATE})
-
-
-def config_message():
-    return json.dumps({"type": "config", "data": GAME_CONFIG})
 
 
 def iseeu_message(websocket):
@@ -109,8 +17,8 @@ def iseeu_message(websocket):
     global ADMIN_IP_ADDRS
 
     remoteIp = websocket.remote_address[0]
-    knownBot = KNOWN_BOTS.get(remoteIp)
-    isAdmin = remoteIp in ADMIN_IP_ADDRS
+    knownBot = DataStore.KNOWN_BOTS.get(remoteIp)
+    isAdmin = remoteIp in DataStore.ADMIN_IP_ADDRS
     return json.dumps({
         "type": "iseeu",
         "data": {
@@ -124,16 +32,16 @@ def iseeu_message(websocket):
 async def send_message(websocket, message):
     if websocket and websocket != "all":
         await websocket.send(message)
-    elif SOCKETS:  # asyncio.wait doesn't accept an empty list
-        await asyncio.wait([websocket.send(message) for websocket in SOCKETS])
+    elif DataStore.SOCKETS:  # asyncio.wait doesn't accept an empty list
+        await asyncio.wait([websocket.send(message) for websocket in DataStore.SOCKETS])
 
 
 async def notify_state(websocket="all"):
-    await send_message(websocket, state_message())
+    await send_message(websocket, DataStore.serializeGameState())
 
 
 async def notify_config(websocket="all"):
-    await send_message(websocket, config_message())
+    await send_message(websocket, DataStore.serializeGameConfig())
 
 
 # NOTE that there is no "all" option here, need a websocket,
@@ -146,7 +54,7 @@ async def notify_iseeu(websocket):
 
 async def register(websocket):
     print(f"got new connection from {websocket.remote_address[0]}")
-    SOCKETS.add(websocket)
+    DataStore.SOCKETS.add(websocket)
     await notify_config(websocket)
     await notify_state(websocket)
     await notify_iseeu(websocket)
@@ -155,7 +63,7 @@ async def register(websocket):
 async def unregister(websocket):
     print(f"lost connection {websocket.remote_address[0]}")
     try:
-        SOCKETS.remove(websocket)
+        DataStore.SOCKETS.remove(websocket)
     except:
         pass
 
@@ -165,12 +73,12 @@ def get_known_bot(websocket, data):
 
     # admins can specify `botIndex` in the messages
     # that update bot states
-    if remoteIp in ADMIN_IP_ADDRS:
+    if remoteIp in DataStore.ADMIN_IP_ADDRS:
         botIndex = data.get('botIndex')
         if is_valid_bot_index(botIndex):
-            return GAME_STATE["bots"][botIndex]
+            return DataStore.GAME_STATE["bots"][botIndex]
 
-    return KNOWN_BOTS.get(remoteIp)
+    return DataStore.KNOWN_BOTS.get(remoteIp)
 
 
 def is_valid_bot_index(index):
@@ -179,7 +87,7 @@ def is_valid_bot_index(index):
 
 def is_admin(websocket):
     remoteIp = websocket.remote_address[0]
-    return remoteIp in ADMIN_IP_ADDRS
+    return remoteIp in DataStore.ADMIN_IP_ADDRS
 
 
 def validate_admin(websocket, attemptedAction):
@@ -199,10 +107,10 @@ async def handleConfigRequest(websocket, data):
     if is_admin(websocket) and data:
         print(f"got admin config request from admin with data {data}")
         didUpdate = False
-        for attribute in dir(GAME_CONFIG):
+        for attribute in dir(DataStore.GAME_CONFIG):
             value = data.get(attribute)
             if value:
-                GAME_CONFIG[attribute] = value
+                DataStore.GAME_CONFIG[attribute] = value
                 didUpdate = True
 
         if didUpdate:
@@ -220,7 +128,7 @@ async def handleCompassMessage(websocket, data):
     if knownBot and heading:
         # print(f"got heading message from known bot {knownBot}")
         knownBot["heading"] = heading
-        GAME_STATE["isDirty"] = True
+        DataStore.GAME_STATE["isDirty"] = True
     else:
         print(f"got heading message from unknown bot {remoteAddr} (ignoring)")
 
@@ -230,7 +138,6 @@ async def handlePositionMessage(websocket, data):
 
 
 async def handlePositionsMessage(websocket, data):
-    global BOT_MODES
 
     if not validate_admin(websocket, 'positions update'):
         return
@@ -243,7 +150,7 @@ async def handlePositionsMessage(websocket, data):
             print(
                 f"received position message from invalid bot index ({botIndex})")
             continue
-        knownBot = GAME_STATE["bots"][botIndex]
+        knownBot = DataStore.GAME_STATE["bots"][botIndex]
 
         rawX = positionData.get('x')
         rawY = positionData.get('y')
@@ -254,7 +161,7 @@ async def handlePositionsMessage(websocket, data):
 
         # The positioning streamer gives us x, y in meters
         # We store position in game units
-        cmPerUnit = GAME_CONFIG["centimetersPerUnit"]
+        cmPerUnit = DataStore.GAME_CONFIG["centimetersPerUnit"]
         x = (rawX * 100) // cmPerUnit  # // = divide and floor
         y = (rawY * 100) // cmPerUnit
 
@@ -264,7 +171,7 @@ async def handlePositionsMessage(websocket, data):
             knownBot["y"] = y
 
     if didUpdate:
-        GAME_STATE['isDirty'] = True
+        DataStore.GAME_STATE['isDirty'] = True
 
 
 async def handleManualPositionMessage(websocket, data):
@@ -284,7 +191,7 @@ async def handleManualPositionMessage(websocket, data):
     position["y"] = data["y"]
     position["heading"] = data["heading"]
 
-    GAME_STATE["isDirty"] = True
+    DataStore.GAME_STATE["isDirty"] = True
 
 
 async def handleBotModeMessage(websocket, data):
@@ -301,17 +208,64 @@ async def handleBotModeMessage(websocket, data):
         print(f"Invalid mode {mode} received for botMode message")
         return
 
-    GAME_STATE["bots"][botIndex]["mode"] = mode
-    GAME_STATE['isDirty'] = True
+    DataStore.GAME_STATE["bots"][botIndex]["mode"] = mode
+    DataStore.GAME_STATE['isDirty'] = True
 
 
 async def handleSilenceMessage(websocket):
     # remoteIp = websocket.remote_address[0]
     # print(f"got shusshed by {remoteIp}")
     try:
-        SOCKETS.remove(websocket)
+        DataStore.SOCKETS.remove(websocket)
     except:
         pass
+
+
+async def handleGameStartMessage(websocket):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+    if gameState == enums.GAME_STATES.game_paused.value:
+        print('resuming')
+        DataStore.resumeGame()
+    elif gameState == enums.GAME_STATES.game_over.value:
+        print('starting')
+        DataStore.startGame()
+
+
+async def handleGameStopMessage(websocket):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+    if gameState != enums.GAME_STATES.game_over.value:
+        DataStore.stopGame()
+
+
+async def handleGamePauseMessage(websocket):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+    if gameState == enums.GAME_STATES.game_on.value:
+        DataStore.pauseGame()
+
+
+async def handleGameReturnToHomeMessage(websocket):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    DataStore.returnToHome()
+
+
+async def handleGameResumeMessage(websocket):
+    if not validate_admin(websocket, 'botMode update'):
+        return
+
+    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+    if gameState == enums.GAME_STATES.game_paused.value:
+        DataStore.resumeGame()
 
 
 async def handleMessage(websocket, path):
@@ -345,6 +299,23 @@ async def handleMessage(websocket, path):
                 await handleSilenceMessage(websocket)
             elif messageType == "heartbeat":
                 pass
+
+            # {type: "gameStart"}
+            elif messageType == "gameStart":
+                await handleGameStartMessage(websocket)
+            # {type: "gameStop"}
+            elif messageType == "gameStop":
+                await handleGameStopMessage(websocket)
+            # {type: "gamePause"}
+            elif messageType == "gamePause":
+                await handleGamePauseMessage(websocket)
+            # {type: "gameResume"}
+            elif messageType == "gameResume":
+                await handleGameResumeMessage(websocket)
+            # {type: "gameReturnToHome"}
+            elif messageType == "gameReturnToHome":
+                await handleGameReturnToHomeMessage(websocket)
+
             else:
                 logging.error("received unsupported message: %s", jsonData)
     finally:
@@ -353,13 +324,28 @@ async def handleMessage(websocket, path):
 
 async def send_state_task():
     while True:
-        if GAME_STATE["isDirty"]:
-            GAME_STATE["isDirty"] = False
+        if DataStore.GAME_STATE["isDirty"]:
+            DataStore.GAME_STATE["isDirty"] = False
             await notify_state()
         await asyncio.sleep(0)
 
-print(f"Starting server on port {LISTEN_PORT}")
-start_server = websockets.serve(handleMessage, port=LISTEN_PORT)
+
+async def update_game_clock_task():
+    while True:
+        await asyncio.sleep(1)
+        # print(f"GAME_STATE={DataStore.GAME_STATE}")
+        gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+        secondsRemaining = DataStore.GAME_STATE["gameStatus"]["secondsRemaining"]
+        if gameState == enums.GAME_STATES.game_on.value:
+            if secondsRemaining > 0:
+                DataStore.clockTick()
+            else:
+                DataStore.stopGame()
+
+
+print(f"Starting server on port {DataStore.LISTEN_PORT}")
+start_server = websockets.serve(handleMessage, port=DataStore.LISTEN_PORT)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().create_task(send_state_task())
+asyncio.get_event_loop().create_task(update_game_clock_task())
 asyncio.get_event_loop().run_forever()
