@@ -8,7 +8,7 @@ Robot Football League is one-on-one football played by autonomous robots. The ga
 
 The game is simple. Each player-bot has a goal they defend (keep ball out of) and an opposing goal they offend by pushing the ball toward.
 
-For Electric Sky 2021, the playing field will be 8' x 16' with 2' at either end making up the goals.
+For Electric Sky 2021, the playing field will be 8' x 16' with a 2' at either end making up the goals. The bots are about 21cm squared. `game-controller` breaks up the playing field into 24cm sq game units of measure producing a 10 x 20 unit coordinate system. Origin is at exactly mid-field.
 
 ![The playing field](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/playingField.png)
 
@@ -16,7 +16,7 @@ For Electric Sky 2021, the playing field will be 8' x 16' with 2' at either end 
 
 ### The Ball (src/ball-bot)
 
-The ball is actually a 4wd bot with omni directional wheels called ball-bot. It receives player coordinates from `game-controller`. Any time a player-bot enters within a given radius of ball-bot, ball-bot will move at an opposing direction to the nearest player-bot with magnitude to match. So the faster a player-bot approaches ball-bot, the further ball bot will move away from player.
+The ball is actually a 4wd bot with omni directional wheels called `ball-bot`. It receives player coordinates from `game-controller`. Any time a player-bot enters within a given radius of ball-bot, ball-bot will move at an opposing direction to the nearest player-bot with magnitude to match. So the faster a player-bot approaches ball-bot, the further ball bot will move away from player.
 
 ### The Game Controller and Timer (src/game-controller)
 
