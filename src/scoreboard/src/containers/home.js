@@ -1,31 +1,39 @@
 import React from "react";
-// import { bindActionCreators } from "redux";
+import styled from "styled-components";
 import { connect } from "react-redux";
-// import { push } from "connected-react-router";
 
 import { Container } from "@material-ui/core";
-// import { DataGrid } from "@material-ui/data-grid";
+
+import ScoreBoard from "./scoreBoard";
+import { H1 } from "../components/styledComponents";
 
 const Home = (props) => (
   <Container>
-    <h1>Robot Futbol League</h1>
+    <Title>Robot Futbol League</Title>
+    <ScoreBoardWrapper>
+      <ScaledWrapper>
+        <ScoreBoard large />
+      </ScaledWrapper>
+    </ScoreBoardWrapper>
   </Container>
 );
+
+const Title = styled(H1)`
+  text-align: center;
+  margin-bottom: 40px;
+`;
+
+const ScoreBoardWrapper = styled.div`
+  height: 300px;
+`;
+
+const ScaledWrapper = styled.div`
+  transform: scale(1.5);
+  transform-origin: top;
+`;
 
 const mapStateToProps = ({ gameState }) => ({
   gameState: gameState,
 });
-
-// const mapDispatchToProps = (dispatch) =>
-//   bindActionCreators(
-//     {
-//       increment,
-//       incrementAsync,
-//       decrement,
-//       decrementAsync,
-//       changePage: () => push("/about-us"),
-//     },
-//     dispatch
-//   );
 
 export default connect(mapStateToProps /*, mapDispatchToProps*/)(Home);

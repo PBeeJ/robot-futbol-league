@@ -4,6 +4,13 @@ export const GAME_STATES = {
   game_paused: 2,
   return_home: 3,
 };
+
+export const GAME_STATE_LABELS = [
+  "Game Over",
+  "Game On!",
+  "Game Paused",
+  "Returning to Home",
+];
 export const VALID_GAME_STATES = Object.values(GAME_STATES);
 
 export const BOT_INDEXES = {

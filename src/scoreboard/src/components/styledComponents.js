@@ -33,7 +33,7 @@ export const H5 = styled(Typography).attrs((props) => ({
   variant: "h5",
   ...props,
 }))`
-  // add additional styling here
+  text-transform: none;
 `;
 
 export const Label = styled(Typography).attrs((props) => ({
@@ -67,7 +67,7 @@ export const FlexRow = styled.div`
 
 export const FlexColumn = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 `;
 
 export const Card = styled(Paper)`

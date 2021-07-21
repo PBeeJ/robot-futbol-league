@@ -1,3 +1,5 @@
+import { VALID_BOT_INDEXES, BOT_MODES } from "selectors/enums";
+
 const GAME_CONTROLLER_URL = "ws://192.168.1.2:6789";
 
 let onMessage = null;
@@ -45,7 +47,6 @@ export function sendGameStop() {
 }
 
 export function sendGamePause() {
-  console.log("sending gamePause");
   return sendMessage({ type: "gamePause" });
 }
 
@@ -55,4 +56,15 @@ export function sendGameResume() {
 
 export function sendReturnToHome() {
   return sendMessage({ type: "gameReturnToHome" });
+}
+
+export function sendAllBotsToAuto() {
+  const data = VALID_BOT_INDEXES.map((index) => ({
+    botIndex: index,
+    mode: BOT_MODES.auto,
+  }));
+  return sendMessage({
+    type: "botModes",
+    data,
+  });
 }

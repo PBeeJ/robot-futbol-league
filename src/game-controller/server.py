@@ -195,20 +195,26 @@ async def handleManualPositionMessage(websocket, data):
 
 
 async def handleBotModeMessage(websocket, data):
+    handleBotModesMessage(websocket, [data])
+
+
+async def handleBotModesMessage(websocket, data):
     if not validate_admin(websocket, 'botMode update'):
         return
 
-    botIndex = data["botIndex"]
-    if not is_valid_bot_index(botIndex):
-        print(f"botMode message received for invalid botIndex {botIndex}")
-        return
+    for botModeData in data:
+        botIndex = botModeData["botIndex"]
+        if not is_valid_bot_index(botIndex):
+            print(f"botMode message received for invalid botIndex {botIndex}")
+            continue
 
-    mode = data["mode"]
-    if not mode in enums.VALID_BOT_MODES:
-        print(f"Invalid mode {mode} received for botMode message")
-        return
+        mode = botModeData["mode"]
+        if not mode in enums.VALID_BOT_MODES:
+            print(f"Invalid mode {mode} received for botMode message")
+            continue
 
-    DataStore.GAME_STATE["bots"][botIndex]["mode"] = mode
+        DataStore.GAME_STATE["bots"][botIndex]["mode"] = mode
+
     DataStore.GAME_STATE['isDirty'] = True
 
 
@@ -222,7 +228,7 @@ async def handleSilenceMessage(websocket):
 
 
 async def handleGameStartMessage(websocket):
-    if not validate_admin(websocket, 'botMode update'):
+    if not validate_admin(websocket, 'game start'):
         return
 
     gameState = DataStore.GAME_STATE["gameStatus"]["state"]
@@ -235,36 +241,32 @@ async def handleGameStartMessage(websocket):
 
 
 async def handleGameStopMessage(websocket):
-    if not validate_admin(websocket, 'botMode update'):
+    if not validate_admin(websocket, 'game stop'):
         return
 
-    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
-    if gameState != enums.GAME_STATES.game_over.value:
-        DataStore.stopGame()
+    DataStore.stopGame()
 
 
 async def handleGamePauseMessage(websocket):
-    if not validate_admin(websocket, 'botMode update'):
+    if not validate_admin(websocket, 'game pause'):
         return
 
-    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
-    if gameState == enums.GAME_STATES.game_on.value:
-        DataStore.pauseGame()
+    DataStore.pauseGame()
 
 
 async def handleGameReturnToHomeMessage(websocket):
-    if not validate_admin(websocket, 'botMode update'):
+    if not validate_admin(websocket, 'return to home'):
         return
 
     DataStore.returnToHome()
 
 
 async def handleGameResumeMessage(websocket):
-    if not validate_admin(websocket, 'botMode update'):
+    if not validate_admin(websocket, 'game resume'):
         return
 
     gameState = DataStore.GAME_STATE["gameStatus"]["state"]
-    if gameState == enums.GAME_STATES.game_paused.value:
+    if gameState != enums.GAME_STATES.game_over.value:
         DataStore.resumeGame()
 
 
@@ -295,6 +297,8 @@ async def handleMessage(websocket, path):
                 await handleManualPositionMessage(websocket, messageData)
             elif messageType == "botMode":
                 await handleBotModeMessage(websocket, messageData)
+            elif messageType == "botModes":
+                await handleBotModesMessage(websocket, messageData)
             elif messageType == "silence":
                 await handleSilenceMessage(websocket)
             elif messageType == "heartbeat":

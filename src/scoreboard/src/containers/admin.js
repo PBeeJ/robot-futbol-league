@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { Container } from "@material-ui/core";
 
 import GameControls from "containers/gameControls";
+import ScoreBoard from "containers/scoreBoard";
 
 import { BotCards } from "components/botCards";
 import { H1, P } from "components/styledComponents";
@@ -16,6 +17,7 @@ const Admin = ({ gameState }) => (
       IP addresses other than those it recognizes as admin.
     </P>
     <GameControls />
+    <ScoreBoard />
     <BotCards bots={gameState.bots} />
   </Container>
 );

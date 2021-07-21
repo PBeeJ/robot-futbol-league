@@ -1,20 +1,19 @@
-import React from "react";
+import React, { useState } from "react";
 import { connect } from "react-redux";
 import { Container, Grid, Fab } from "@material-ui/core";
-import { green } from "@material-ui/core/colors";
+import { green, blueGrey } from "@material-ui/core/colors";
 import styled from "styled-components";
 
 import { GAME_STATES } from "../selectors/enums";
-import { gameStateStateSelector } from "selectors/gameState";
 import {
-  sendGameStart,
-  sendGameStop,
-  sendGamePause,
-  sendGameResume,
-  sendReturnToHome,
-} from "../websockets";
+  gameStateStateSelector,
+  hasManualBotSelector,
+} from "selectors/gameState";
+import * as ws from "../websockets";
 
-import { H3 } from "components/styledComponents";
+import { H3, H5 } from "components/styledComponents";
+import { ConfirmDialogStartWithBotsOffline } from "components/confirmDialogStartWithBotsOffline";
+import { ConfirmDialogEndGame } from "components/confirmDialogEndGame";
 
 /*
   Things the human referee most urgently needs to do:
@@ -34,45 +33,76 @@ import { H3 } from "components/styledComponents";
   - Confirmation that bots are online
 
 */
-const GameControls = ({ gameStateState }) => {
+const GameControls = ({ gameStateState, hasManualBot }) => {
+  const [isConfirmingStart, setIsConfirmingStart] = useState(false);
+  const [isConfirmingEnd, setIsConfirmingEnd] = useState(false);
+
+  const handleGameOnButton = () => {
+    if (hasManualBot) {
+      setIsConfirmingStart(true);
+    } else {
+      ws.sendGameStart();
+    }
+  };
+
+  const handleConfirmStartAsIs = () => {
+    setIsConfirmingStart(false);
+    ws.sendGameStart();
+  };
+
+  const handleConfirmSwitchToAuto = () => {
+    setIsConfirmingStart(false);
+    ws.sendAllBotsToAuto();
+    ws.sendGameStart();
+  };
+
+  const handleGameStopButton = () => {
+    setIsConfirmingEnd(true);
+  };
+
+  const handleConfirmGameStop = () => {
+    setIsConfirmingEnd(false);
+    ws.sendGameStop();
+  };
+
   const GameOnButton = () => (
-    <Grid item>
-      <BigAssButton onClick={() => sendGameStart()}>
+    <GridItem>
+      <BigAssButton onClick={handleGameOnButton}>
         <H3>Game On!</H3>
       </BigAssButton>
-    </Grid>
+    </GridItem>
   );
 
   const PauseButton = () => (
-    <Grid item>
-      <BigAssButton onClick={() => sendGamePause()}>
+    <GridItem>
+      <BigAssButton onClick={() => ws.sendGamePause()}>
         <H3>Pause Game</H3>
       </BigAssButton>
-    </Grid>
+    </GridItem>
   );
 
   const ResumeButton = () => (
-    <Grid item>
-      <BigAssButton onClick={() => sendGameResume()}>
+    <GridItem>
+      <BigAssButton onClick={() => ws.sendGameResume()}>
         <H3>Resume Game</H3>
       </BigAssButton>
-    </Grid>
+    </GridItem>
   );
 
   const ReturnToHomeButton = () => (
-    <Grid item>
-      <BigAssButton onClick={() => sendReturnToHome()}>
-        <H3>Return to Home</H3>
-      </BigAssButton>
-    </Grid>
+    <GridItem>
+      <LesserButton onClick={() => ws.sendReturnToHome()}>
+        <H5>Return to Home</H5>
+      </LesserButton>
+    </GridItem>
   );
 
   const EndGameButton = () => (
-    <Grid item>
-      <BigAssButton onClick={() => sendGameStop()}>
-        <H3>End Game</H3>
-      </BigAssButton>
-    </Grid>
+    <GridItem>
+      <LesserButton onClick={handleGameStopButton}>
+        <H5>End Game</H5>
+      </LesserButton>
+    </GridItem>
   );
 
   const Buttons = () => {
@@ -85,42 +115,76 @@ const GameControls = ({ gameStateState }) => {
         buttons.push(<PauseButton />);
         break;
       case GAME_STATES.game_paused:
-        buttons.push(<ResumeButton />);
         buttons.push(<ReturnToHomeButton />);
+        buttons.push(<ResumeButton />);
         buttons.push(<EndGameButton />);
         break;
       case GAME_STATES.return_home:
         buttons.push(<PauseButton />);
         break;
       default:
-        return `Invalid gameStatus.state ${gameStateState}`;
+        return null;
     }
     return buttons;
   };
 
   return (
-    <Container>
-      <Grid container justify="center">
-        <Grid item>
-          <Buttons />
-        </Grid>
+    <OurContainer>
+      <Grid container spacing={2} align="center" justify="center">
+        <Buttons />
       </Grid>
-    </Container>
+      <ConfirmDialogStartWithBotsOffline
+        isOpen={isConfirmingStart}
+        onCancel={() => setIsConfirmingStart(false)}
+        onConfirmAsIs={handleConfirmStartAsIs}
+        onConfirmSwitchToAuto={handleConfirmSwitchToAuto}
+      />
+      <ConfirmDialogEndGame
+        isOpen={isConfirmingEnd}
+        onCancel={() => setIsConfirmingEnd(false)}
+        onConfirm={handleConfirmGameStop}
+      />
+    </OurContainer>
   );
 };
+
+const OurContainer = styled(Container)`
+  margin-top: 20px;
+  margin-bottom: 20px;
+  min-height: 70px;
+`;
+
+const GridItem = styled(Grid).attrs((props) => ({
+  item: true,
+  ...props,
+}))`
+  align-self: center;
+`;
 
 const BigAssButton = styled(Fab).attrs((props) => ({
   size: "large",
   variant: "extended",
   ...props,
 }))`
-  margin: 40px;
-  padding: 22px;
   background-color: ${green["A400"]};
+  margin-right: 20px;
+  padding: 22px;
+`;
+
+const LesserButton = styled(Fab).attrs((props) => ({
+  size: "medium",
+  variant: "extended",
+  ...props,
+}))`
+  background-color: ${blueGrey["100"]};
+  margin-right: 20px;
+  padding: 12px;
+  width: 100px;
 `;
 
 const mapStateToProps = (state) => ({
   gameStateState: gameStateStateSelector(state),
+  hasManualBot: hasManualBotSelector(state),
 });
 
 export default connect(mapStateToProps /*, mapDispatchToProps*/)(GameControls);
