@@ -45,3 +45,11 @@ This is the code to hack. The default implementation here is pretty dumb. It sim
   - calculates a velocity interrupt vector to a point halfway between ball and defending goal
 - else
   - move on vector toward ball at full speed
+
+## The network
+
+![the network](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/network.png)
+
+## The Positioning System
+
+![the positioning system](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/positioningSystem.png)
