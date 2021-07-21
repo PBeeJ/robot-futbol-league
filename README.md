@@ -10,6 +10,8 @@ The game is simple. Each player-bot has a goal they defend (keep ball out of) an
 
 For Electric Sky 2021, the playing field will be 8' x 16' with 2' at either end making up the goals.
 
+![The playing field](https://github.com/littlebee/robot-futbol-league/blob/21360f91521fedb90e847d95a40ac1250cc77d64/docs/playingField.png)
+
 ## The components
 
 ### The Ball (src/ball-bot)
