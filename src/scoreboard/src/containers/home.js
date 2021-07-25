@@ -3,24 +3,31 @@ import styled from "styled-components";
 import { connect } from "react-redux";
 
 import { Container } from "@material-ui/core";
+import { green } from "@material-ui/core/colors";
 
 import ScoreBoard from "./scoreBoard";
 import { H1 } from "../components/styledComponents";
 
 const Home = (props) => (
-  <Container>
+  <OurContainer>
     <Title>Robot Futbol League</Title>
     <ScoreBoardWrapper>
       <ScaledWrapper>
         <ScoreBoard large />
       </ScaledWrapper>
     </ScoreBoardWrapper>
-  </Container>
+  </OurContainer>
 );
+
+const OurContainer = styled(Container)`
+  background-color: ${green[100]};
+  position: absolute;
+  height: 100%;
+`;
 
 const Title = styled(H1)`
   text-align: center;
-  margin-bottom: 40px;
+  margin: 40px !important;
 `;
 
 const ScoreBoardWrapper = styled.div`

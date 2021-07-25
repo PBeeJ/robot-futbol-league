@@ -1,39 +1,20 @@
 import time
 import math
 import board
-import adafruit_lis3mdl
+import smbus
+import asyncio
 
 
-i2c = board.I2C()  # uses board.SCL and board.SDA
-mag = adafruit_lis3mdl.LIS3MDL(i2c)
+bus = smbus.SMBus(1)
+address = 0x60
 
 
 def get_heading():
-    # TODO : replace with function that reads from magnetometer
-    # and converts to 0-360
-    mag_x, mag_y, mag_z = mag.magnetic
-
-    # heading = math.atan2(mag_x, mag_y) * 180 / math.pi
-
-    # pirate = 180.0/math.pi
-    # xz = pirate * math.atan2(mag_x, mag_z)
-    # yz = pirate * math.atan2(mag_y, mag_z)
-
-    # print(f"Level {xz} {yz}")
-
-    heading = math.atan2(-mag_x, mag_y)
-    # if heading >= 1:
-    #     heading = 0
-    # else:
-    #     heading = heading * 360
-
-    # compensate for mounting of mag on bot
-    #  heading = add_degrees(heading, -90)
-
-    print('heading: {0:10.2f} X:{1:10.2f}, Y:{2:10.2f}, Z:{3:10.2f} uT'.format(
-        heading, mag_x, mag_y, mag_z))
-
-    return heading
+    bear1 = bus.read_byte_data(address, 2)
+    bear2 = bus.read_byte_data(address, 3)
+    bear = (bear1 << 8) + bear2
+    bear = bear/10.0
+    return bear
 
 
 def add_degrees(heading, deg):
@@ -45,5 +26,8 @@ def add_degrees(heading, deg):
     return newHeading
 
 
-# north: 52, 47
-# south: -84, 53
+def diff_degrees(deg1, deg2):
+    deg1_adj = deg1 + 180 if deg1 < 180 else deg1 - 180
+    deg2_adj = deg2 + 180 if deg2 < 180 else deg2 - 180
+
+    return deg1_adj + deg2_adj
