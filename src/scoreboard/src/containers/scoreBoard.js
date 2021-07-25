@@ -56,6 +56,7 @@ const OurContainer = styled(Container)`
   padding: 20px 20px;
   text-align: center;
   margin-bottom: 30px;
+  border-radius: 5px;
 `;
 
 const mapStateToProps = (state) => ({

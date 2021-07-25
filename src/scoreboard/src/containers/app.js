@@ -34,14 +34,10 @@ const App = () => {
   }
 
   return (
-    <div>
-      <header></header>
-
-      <main>
-        <Route exact path="/" component={Home} />
-        <Route exact path="/admin" component={Admin} />
-      </main>
-    </div>
+    <>
+      <Route exact path="/" component={Home} />
+      <Route exact path="/admin" component={Admin} />
+    </>
   );
 };
 

@@ -9,11 +9,11 @@ export function SevenSegmentClock({ seconds }) {
     .split("");
   const displaySeconds = (seconds % 60).toString().split("");
 
-  if (displayMinutes.length == 1) {
+  if (displayMinutes.length === 1) {
     displayMinutes.splice(0, 0, "0");
   }
 
-  if (displaySeconds.length == 1) {
+  if (displaySeconds.length === 1) {
     displaySeconds.splice(0, 0, "0");
   }
 
@@ -24,7 +24,7 @@ export function SevenSegmentClock({ seconds }) {
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "black",
-        padding: "20px 30px 20px 20px",
+        padding: "20px",
       }}
     >
       <SevenSegmentNumber value={displayMinutes[0]} />

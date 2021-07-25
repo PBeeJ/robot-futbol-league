@@ -11,7 +11,7 @@ export const SevenSegmentNumber = (props) => {
     <div className="Display">
       {segments.map((seg, i) => {
         return (
-          <Segment on={((bit >> i) & 1) == 1 ? true : false} position={seg} />
+          <Segment key={i} on={((bit >> i) & 1) === 1} position={seg} />
         );
       })}
     </div>

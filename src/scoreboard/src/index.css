@@ -2,6 +2,12 @@ html {
   font-size: 100%;
 }
 
+html, body, #root {
+  height: 100%;
+  display: grid;
+  flex: 1;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -13,4 +19,12 @@ body {
 
 button:disabled {
   opacity: 0.5;
+}
+
+/* Soccer font */
+@font-face {
+  font-family: "SoccerLeague";
+  src: local("SoccerLeague"),
+    url("./fonts/SoccerLeague.ttf") format("truetype");
+  font-weight: normal;
 }

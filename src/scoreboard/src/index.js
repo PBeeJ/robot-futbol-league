@@ -20,9 +20,7 @@ render(
   <ThemeProvider theme={theme}>
     <Provider store={store}>
       <ConnectedRouter history={history}>
-        <div>
-          <App />
-        </div>
+        <App />
       </ConnectedRouter>
     </Provider>
   </ThemeProvider>,
