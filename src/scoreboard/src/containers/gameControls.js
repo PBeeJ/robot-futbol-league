@@ -8,12 +8,12 @@ import { GAME_STATES } from "../selectors/enums";
 import {
   gameStateStateSelector,
   hasManualBotSelector,
-} from "selectors/gameState";
+} from "../selectors/gameState";
 import * as ws from "../websockets";
 
-import { H3, H5 } from "components/styledComponents";
-import { ConfirmDialogStartWithBotsOffline } from "components/confirmDialogStartWithBotsOffline";
-import { ConfirmDialogEndGame } from "components/confirmDialogEndGame";
+import { H3, H5 } from "../components/styledComponents";
+import ConfirmDialogStartWithBotsOffline from "../components/confirmDialogStartWithBotsOffline";
+import ConfirmDialogEndGame from "../components/confirmDialogEndGame";
 
 /*
   Things the human referee most urgently needs to do:
@@ -109,18 +109,18 @@ const GameControls = ({ gameStateState, hasManualBot }) => {
     const buttons = [];
     switch (gameStateState) {
       case GAME_STATES.game_over:
-        buttons.push(<GameOnButton />);
+        buttons.push(<GameOnButton key="over" />);
         break;
       case GAME_STATES.game_on:
-        buttons.push(<PauseButton />);
+        buttons.push(<PauseButton key="pause" />);
         break;
       case GAME_STATES.game_paused:
-        buttons.push(<ReturnToHomeButton />);
-        buttons.push(<ResumeButton />);
-        buttons.push(<EndGameButton />);
+        buttons.push(<ReturnToHomeButton key="return" />);
+        buttons.push(<ResumeButton key="resume" />);
+        buttons.push(<EndGameButton key="end" />);
         break;
       case GAME_STATES.return_home:
-        buttons.push(<PauseButton />);
+        buttons.push(<PauseButton key="pause" />);
         break;
       default:
         return null;
@@ -130,7 +130,7 @@ const GameControls = ({ gameStateState, hasManualBot }) => {
 
   return (
     <OurContainer>
-      <Grid container spacing={2} align="center" justify="center">
+      <Grid container spacing={2} align="center" justifyContent="center">
         <Buttons />
       </Grid>
       <ConfirmDialogStartWithBotsOffline
@@ -166,7 +166,7 @@ const BigAssButton = styled(Fab).attrs((props) => ({
   variant: "extended",
   ...props,
 }))`
-  background-color: ${green["A400"]};
+  background-color: ${green.A400};
   margin-right: 20px;
   padding: 22px;
 `;
@@ -187,4 +187,4 @@ const mapStateToProps = (state) => ({
   hasManualBot: hasManualBotSelector(state),
 });
 
-export default connect(mapStateToProps /*, mapDispatchToProps*/)(GameControls);
+export default connect(mapStateToProps /* , mapDispatchToProps */)(GameControls);

@@ -1,4 +1,4 @@
-import { VALID_BOT_INDEXES, BOT_MODES } from "selectors/enums";
+import { VALID_BOT_INDEXES, BOT_MODES } from "../selectors/enums";
 
 const GAME_CONTROLLER_URL = "ws://192.168.1.2:6789";
 
@@ -20,7 +20,7 @@ function handleError(event) {
   console.log("got websocket error", event);
 }
 
-function handleClose(event) {
+function handleClose() {
   console.log("ws connection closed.  reestablishing in 5 seconds");
   ws = null;
   setTimeout(() => {

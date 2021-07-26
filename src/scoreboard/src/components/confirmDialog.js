@@ -6,7 +6,7 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 
-export function ConfirmDialog({
+export default function ConfirmDialog({
   isOpen,
   confirmQuestion,
   helpText,
@@ -21,7 +21,7 @@ export function ConfirmDialog({
       </Button>
       <Button onClick={onConfirm} color="primary" autoFocus>
         Do it!
-      </Button>{" "}
+      </Button>
     </>
   );
   const renderButtons = buttons || defaultButtons;

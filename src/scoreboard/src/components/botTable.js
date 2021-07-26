@@ -1,7 +1,7 @@
 import React from "react";
 import { Container } from "@material-ui/core";
 
-export function BotTable(props) {
+export default function BotTable({ bots }) {
   return (
     <Container>
       <h2>Bots</h2>
@@ -15,7 +15,7 @@ export function BotTable(props) {
           </tr>
         </thead>
         <tbody>
-          {props.bots.map((bot) => (
+          {bots.map((bot) => (
             <tr key={bot.name}>
               <td>{bot.name}</td>
               <td>{bot.x}</td>

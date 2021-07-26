@@ -8,7 +8,7 @@ import { Provider } from "react-redux";
 import { ConnectedRouter } from "connected-react-router";
 import store, { history } from "./store";
 
-import App from "containers/app";
+import App from "./containers/app";
 
 import "sanitize.css/sanitize.css";
 import "./index.css";
@@ -20,11 +20,9 @@ render(
   <ThemeProvider theme={theme}>
     <Provider store={store}>
       <ConnectedRouter history={history}>
-        <div>
-          <App />
-        </div>
+        <App />
       </ConnectedRouter>
     </Provider>
   </ThemeProvider>,
-  target
+  target,
 );
