@@ -103,6 +103,8 @@ GAME_CONFIG = {
         "y": 0,
         "heading": 270,
     }],
+    # in game units of measure
+    "ballActivationRadius": 2,
 }
 
 SOCKETS = set()
