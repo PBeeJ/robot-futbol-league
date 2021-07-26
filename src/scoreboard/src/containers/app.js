@@ -2,13 +2,13 @@ import React, { useEffect } from "react";
 import { Route } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
-import { startClient } from "websockets";
-import { updateGameConfig } from "modules/gameConfig";
-import { updateGameState } from "modules/gameState";
-import { updateWhoAmI } from "modules/whoAmI";
+import { startClient } from "../websockets";
+import { updateGameConfig } from "../modules/gameConfig";
+import { updateGameState } from "../modules/gameState";
+import { updateWhoAmI } from "../modules/whoAmI";
 
-import Home from "containers/home";
-import Admin from "containers/admin";
+import Home from "./home";
+import Admin from "./admin";
 
 const App = () => {
   const dispatch = useDispatch();

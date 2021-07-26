@@ -1,18 +1,18 @@
 import React from "react";
 import { Container, Grid } from "@material-ui/core";
 
-import { H2 } from "components/styledComponents";
+import { H2 } from "./styledComponents";
 
-import { BotCard } from "components/botCard";
+import BotCard from "./botCard";
 
-export function BotCards(props) {
+export default function BotCards({ bots }) {
   return (
     <Container>
       <Grid container spacing={2}>
         <Grid item xs={12} style={{ justifyContent: "center" }}>
           <H2>Robots</H2>
         </Grid>
-        {props.bots.map((bot) => (
+        {bots.map((bot) => (
           <Grid item key={bot.name}>
             <BotCard bot={bot} />
           </Grid>

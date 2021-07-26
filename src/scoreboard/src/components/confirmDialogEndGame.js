@@ -1,13 +1,11 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
 
-import { ConfirmDialog } from "./confirmDialog";
+import ConfirmDialog from "./confirmDialog";
 
 const CONFIRM_QUESTION = "Are you sure you want to end the game?";
-const CONFIRM_HELP_TEXT =
-  "Ending the game is not resumable and a new game will need to be started";
+const CONFIRM_HELP_TEXT = "Ending the game is not resumable and a new game will need to be started";
 
-export function ConfirmDialogEndGame({ isOpen, onCancel, onConfirm }) {
+export default function ConfirmDialogEndGame({ isOpen, onCancel, onConfirm }) {
   return (
     <ConfirmDialog
       isOpen={isOpen}

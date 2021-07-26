@@ -35,7 +35,7 @@ const Title = styled(H1)`
 `;
 
 const mapStateToProps = ({ gameState }) => ({
-  gameState: gameState,
+  gameState,
 });
 
-export default connect(mapStateToProps /*, mapDispatchToProps*/)(Home);
+export default connect(mapStateToProps /* , mapDispatchToProps */)(Home);

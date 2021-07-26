@@ -11,6 +11,7 @@ const enhancers = [];
 const middleware = [thunk, routerMiddleware(history)];
 
 if (process.env.NODE_ENV === "development") {
+  // eslint-disable-next-line no-underscore-dangle
   const devToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION__;
 
   if (typeof devToolsExtension === "function") {
@@ -23,5 +24,5 @@ const composedEnhancers = compose(applyMiddleware(...middleware), ...enhancers);
 export default createStore(
   rootReducer(history),
   initialState,
-  composedEnhancers
+  composedEnhancers,
 );

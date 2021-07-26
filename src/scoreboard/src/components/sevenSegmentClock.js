@@ -1,9 +1,9 @@
 import React from "react";
 
-import { SevenSegmentNumber } from "./sevenSegmentNumber";
+import SevenSegmentNumber from "./sevenSegmentNumber";
 
 // Found on the interwebs: https://codepen.io/jonrohan/pen/qJzqXw
-export function SevenSegmentClock({ seconds }) {
+export default function SevenSegmentClock({ seconds }) {
   const displayMinutes = Math.floor(seconds / 60)
     .toString()
     .split("");
@@ -36,6 +36,4 @@ export function SevenSegmentClock({ seconds }) {
   );
 }
 
-const Colon = (props) => {
-  return <div className={`Colon ${props.blink ? "Colon--blink" : ""}`} />;
-};
+const Colon = ({ blink }) => <div className={`Colon ${blink ? "Colon--blink" : ""}`} />;

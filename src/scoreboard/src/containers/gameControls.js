@@ -8,12 +8,12 @@ import { GAME_STATES } from "../selectors/enums";
 import {
   gameStateStateSelector,
   hasManualBotSelector,
-} from "selectors/gameState";
+} from "../selectors/gameState";
 import * as ws from "../websockets";
 
-import { H3, H5 } from "components/styledComponents";
-import { ConfirmDialogStartWithBotsOffline } from "components/confirmDialogStartWithBotsOffline";
-import { ConfirmDialogEndGame } from "components/confirmDialogEndGame";
+import { H3, H5 } from "../components/styledComponents";
+import ConfirmDialogStartWithBotsOffline from "../components/confirmDialogStartWithBotsOffline";
+import ConfirmDialogEndGame from "../components/confirmDialogEndGame";
 
 /*
   Things the human referee most urgently needs to do:
@@ -166,7 +166,7 @@ const BigAssButton = styled(Fab).attrs((props) => ({
   variant: "extended",
   ...props,
 }))`
-  background-color: ${green["A400"]};
+  background-color: ${green.A400};
   margin-right: 20px;
   padding: 22px;
 `;
@@ -187,4 +187,4 @@ const mapStateToProps = (state) => ({
   hasManualBot: hasManualBotSelector(state),
 });
 
-export default connect(mapStateToProps /*, mapDispatchToProps*/)(GameControls);
+export default connect(mapStateToProps /* , mapDispatchToProps */)(GameControls);

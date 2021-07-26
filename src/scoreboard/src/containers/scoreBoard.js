@@ -9,46 +9,44 @@ import {
   gameStateStateSelector,
   secondsRemainingSelector,
   scoresSelector,
-} from "selectors/gameState";
+} from "../selectors/gameState";
 
-import { SevenSegmentClock } from "../components/sevenSegmentClock";
+import SevenSegmentClock from "../components/sevenSegmentClock";
 import {
   H3,
   H4,
   FlexRow,
   FlexColumn,
   FlexCell,
-} from "components/styledComponents";
-import { SevenSegmentNumber } from "../components/sevenSegmentNumber";
+} from "../components/styledComponents";
+// import { SevenSegmentNumber } from '../components/sevenSegmentNumber';
 
-const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => {
-  return (
-    <OurContainer>
-      <FlexRow>
-        <FlexCell>
-          <FlexColumn>
-            <H3>Blue</H3>
-            <H4>{scores[0]}</H4>
-          </FlexColumn>
-        </FlexCell>
-        <FlexCell>
-          <FlexColumn>
-            <H3>
-              <SevenSegmentClock seconds={secondsRemaining} />
-            </H3>
-            <H4>{GAME_STATE_LABELS[gameStateState]}</H4>
-          </FlexColumn>
-        </FlexCell>
-        <FlexCell>
-          <FlexColumn>
-            <H3>Red</H3>
-            <H4>{scores[1]}</H4>
-          </FlexColumn>
-        </FlexCell>
-      </FlexRow>
-    </OurContainer>
-  );
-};
+const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
+  <OurContainer>
+    <FlexRow>
+      <FlexCell>
+        <FlexColumn>
+          <H3>Blue</H3>
+          <H4>{scores[0]}</H4>
+        </FlexColumn>
+      </FlexCell>
+      <FlexCell>
+        <FlexColumn>
+          <H3>
+            <SevenSegmentClock seconds={secondsRemaining} />
+          </H3>
+          <H4>{GAME_STATE_LABELS[gameStateState]}</H4>
+        </FlexColumn>
+      </FlexCell>
+      <FlexCell>
+        <FlexColumn>
+          <H3>Red</H3>
+          <H4>{scores[1]}</H4>
+        </FlexColumn>
+      </FlexCell>
+    </FlexRow>
+  </OurContainer>
+);
 
 const OurContainer = styled(Container)`
   background-color: ${purple[400]};
