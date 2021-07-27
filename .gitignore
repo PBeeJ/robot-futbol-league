@@ -6,3 +6,5 @@
 # compiled streamer exe
 mm_api_example
 UNKNOWN.egg-info
+
+node_modules

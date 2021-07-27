@@ -1,45 +1,42 @@
 import { Typography, Paper } from "@material-ui/core";
 import styled from "styled-components";
 
-export const H1 = styled(Typography).attrs((props) => ({
+export const H1 = styled(Typography).attrs(() => ({
   variant: "h1",
-  ...props,
 }))`
   // add additional styling here
 `;
 
-export const H2 = styled(Typography).attrs((props) => ({
+export const H2 = styled(Typography).attrs(() => ({
   variant: "h2",
-  ...props,
 }))`
   // add additional styling here
 `;
 
-export const H3 = styled(Typography).attrs((props) => ({
+export const H3 = styled(Typography).attrs(() => ({
   variant: "h3",
-  ...props,
 }))`
   text-transform: none;
 `;
 
-export const H4 = styled(Typography).attrs((props) => ({
+export const H4 = styled(Typography).attrs(() => ({
   variant: "h4",
-  ...props,
 }))`
   text-transform: none;
+  font-family: SoccerLeague !important;
+  font-size: 3em !important;
+  margin-top: 20px !important;
 `;
 
-export const H5 = styled(Typography).attrs((props) => ({
+export const H5 = styled(Typography).attrs(() => ({
   variant: "h5",
-  ...props,
 }))`
   text-transform: none;
 `;
 
-export const Label = styled(Typography).attrs((props) => ({
+export const Label = styled(Typography).attrs(() => ({
   variant: "overline",
   gutterBottom: true,
-  ...props,
 }))`
   // add additional styling here
 `;
@@ -76,10 +73,7 @@ export const Card = styled(Paper)`
 `;
 
 export const Cell = styled.div`
-  margin-right: 8px;
 `;
 
 export const FlexCell = styled.div`
-  margin-right: 8px;
-  flex-grow: 1;
 `;

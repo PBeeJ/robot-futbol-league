@@ -24,4 +24,7 @@ export const BOT_MODES = {
   auto: 0,
   manual: 1,
 };
+
+export const BOT_MODE_NAMES = ["Autonomous", "Manual"];
+
 export const VALID_BOT_MODES = Object.values(BOT_MODES);

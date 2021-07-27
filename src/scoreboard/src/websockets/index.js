@@ -34,7 +34,7 @@ function handleMessage(event) {
   onMessage(data);
 }
 
-function sendMessage(obj) {
+export function sendMessage(obj) {
   return ws.send(JSON.stringify(obj));
 }
 
@@ -66,5 +66,15 @@ export function sendAllBotsToAuto() {
   return sendMessage({
     type: "botModes",
     data,
+  });
+}
+
+export function sendBotMode(botIndex, botMode) {
+  return sendMessage({
+    type: "botMode",
+    data: {
+      botIndex,
+      mode: botMode,
+    },
   });
 }
