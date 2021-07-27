@@ -5,7 +5,7 @@ import json
 # static IPs the router assigns to my macbook and ipad
 # plus '::1' (localhost) for testing and debugging local
 ADMIN_IP_ADDRS = ['::1', '127.0.0.1',
-                  '192.168.1.7', '192.168.1.8', '192.168.1.9', '192.168.1.14']
+                  '192.168.1.7', '192.168.1.8', '192.168.1.9', '192.168.1.10', '192.168.1.14']
 BALL_IP_ADDR = '192.168.1.3'
 PLAYER_1_IP_ADDR = '192.168.1.4'
 PLAYER_2_IP_ADDR = '192.168.1.5'
@@ -103,6 +103,8 @@ GAME_CONFIG = {
         "y": 0,
         "heading": 270,
     }],
+    # in game units of measure
+    "ballActivationRadius": 2,
 }
 
 SOCKETS = set()

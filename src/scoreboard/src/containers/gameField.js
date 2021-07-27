@@ -11,6 +11,29 @@ const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
 const playerDiameterInCM = 21;
 
+function Goal({ color, name }) {
+  return (
+    <div style={{
+      backgroundColor: color,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+    >
+      <div style={{
+        textOrientation: "mixed",
+        writingMode: "vertical-rl",
+        color: "white",
+        padding: 40,
+      }}
+      >
+        {name}
+
+      </div>
+    </div>
+  );
+}
+
 function FieldCell() {
   return <div style={{ outline: "1px solid rgba(255,255,255,0.5)" }} />;
 }
@@ -85,12 +108,17 @@ const GameField = ({ gameState, gameConfig }) => {
   }
 
   return (
-    <>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "auto 1fr auto",
+      margin: 30,
+    }}
+    >
+      <Goal name="blue goal" color={blue[400]} />
       <div
         style={{
           display: "flex",
           justifyContent: "center",
-          margin: "0 30px 30px 30px",
           backgroundColor: green[400],
           position: "relative",
         }}
@@ -101,7 +129,8 @@ const GameField = ({ gameState, gameConfig }) => {
         <PlayerPiece left={bot2X} top={bot2Y} backgroundColor={blue[400]} />
         <FieldGrid />
       </div>
-    </>
+      <Goal name="red goal" color={red[400]} />
+    </div>
   );
 };
 

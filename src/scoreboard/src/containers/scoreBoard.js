@@ -1,8 +1,8 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Container } from "@material-ui/core";
-import { purple } from "@material-ui/core/colors";
 import styled from "styled-components";
+import { red, blue } from "@material-ui/core/colors";
 
 import { GAME_STATE_LABELS } from "../selectors/enums";
 import {
@@ -15,46 +15,50 @@ import SevenSegmentClock from "../components/sevenSegmentClock";
 import {
   H3,
   H4,
-  FlexRow,
   FlexColumn,
   FlexCell,
 } from "../components/styledComponents";
 // import { SevenSegmentNumber } from '../components/sevenSegmentNumber';
 
+function Score({ name, score, color }) {
+  return (
+    <FlexCell>
+      <FlexColumn style={{ backgroundColor: color, borderRadius: 2, padding: 5 }}>
+        <H3 style={{ color: "white" }}>{name}</H3>
+        <H4 style={{ color: "white" }}>{score}</H4>
+      </FlexColumn>
+    </FlexCell>
+  );
+}
+
 const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
   <OurContainer>
-    <FlexRow>
-      <FlexCell>
-        <FlexColumn>
-          <H3>Blue</H3>
-          <H4>{scores[0]}</H4>
-        </FlexColumn>
-      </FlexCell>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "120px 1fr 120px",
+      gridGap: 20,
+    }}
+    >
+      <Score name="Blue" score={scores[0]} color={blue[400]} />
       <FlexCell>
         <FlexColumn>
           <H3>
             <SevenSegmentClock seconds={secondsRemaining} />
           </H3>
-          <H4>{GAME_STATE_LABELS[gameStateState]}</H4>
+          <H4 style={{ marginTop: 10 }}>{GAME_STATE_LABELS[gameStateState]}</H4>
         </FlexColumn>
       </FlexCell>
-      <FlexCell>
-        <FlexColumn>
-          <H3>Red</H3>
-          <H4>{scores[1]}</H4>
-        </FlexColumn>
-      </FlexCell>
-    </FlexRow>
+      <Score name="Red" score={scores[1]} color={red[400]} />
+    </div>
   </OurContainer>
 );
 
 const OurContainer = styled(Container)`
-  background-color: ${purple[400]};
+  background-color: rgba(255,255,255,0.5);
   max-width: 600px;
   padding: 20px 20px;
   text-align: center;
-  margin-bottom: 30px;
-  border-radius: 5px;
+  border-radius: 10px;
 `;
 
 const mapStateToProps = (state) => ({

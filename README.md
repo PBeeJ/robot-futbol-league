@@ -53,3 +53,10 @@ This is the code to hack. The default implementation here is pretty dumb. It sim
 ## The Positioning System
 
 ![the positioning system](https://github.com/littlebee/robot-futbol-league/blob/master/docs/positioningSystem.png)
+
+## Playfield setup (positioning IRL)
+- In the marvelmind software, import the PNG of the playfield as a floorplan
+- Drag the becons to where they are in real life, relative to the playfield
+- Rotate the Z plane to get X and Y parallel to horizontal and vertical (wrt playfield image)
+- If chirality of X & Y isn't right, rotate whichever one you need to to get it right
+- Translate the origin to the center of the playing field, and now the coordinates should be what you want.
