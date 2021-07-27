@@ -162,8 +162,8 @@ async def handlePositionsMessage(websocket, data):
         # The positioning streamer gives us x, y in meters
         # We store position in 10ths of game units
         cmPerUnit = DataStore.GAME_CONFIG["centimetersPerUnit"]
-        x = (rawX * 1000) // cmPerUnit / 10  # // = divide and floor
-        y = (rawY * 1000) // cmPerUnit / 10
+        x = (rawX * 100) / cmPerUnit  # // = divide and floor
+        y = (rawY * 100) / cmPerUnit
 
         if x != knownBot["x"] or y != knownBot["y"]:
             didUpdate = True
