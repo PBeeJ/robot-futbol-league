@@ -11,14 +11,8 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import CloseIcon from "@material-ui/icons/Close";
 import Slide from "@material-ui/core/Slide";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import FormLabel from "@material-ui/core/FormLabel";
 
-import { BOT_MODES, BOT_MODE_NAMES } from "../selectors/enums";
-import { sendBotMode } from "../websockets";
+import BotModeControl from "./botModeControl";
 
 const useStyles = makeStyles((theme) => ({
   appBar: {
@@ -39,14 +33,6 @@ export default function BotDialog({ bot, isOpen, onClose }) {
   if (!bot) {
     return null;
   }
-
-  const handleBotModeChange = (evt) => {
-    const newMode = parseInt(evt.target.value, 10);
-    sendBotMode(bot.index, newMode);
-    // update bot.mode directly to be more responsive
-    // eslint-disable-next-line
-    bot.mode = newMode;
-  };
 
   return (
     <Dialog
@@ -74,26 +60,7 @@ export default function BotDialog({ bot, isOpen, onClose }) {
         <div className={classes.toggleContainer}>
           <Grid container spacing={2}>
             <Grid item>
-              <FormControl component="fieldset">
-                <FormLabel component="legend">BotMode</FormLabel>
-                <RadioGroup
-                  aria-label="bot mode"
-                  name="botMode1"
-                  value={bot.mode}
-                  onChange={handleBotModeChange}
-                >
-                  <FormControlLabel
-                    value={BOT_MODES.manual}
-                    control={<Radio />}
-                    label={BOT_MODE_NAMES[BOT_MODES.manual]}
-                  />
-                  <FormControlLabel
-                    value={BOT_MODES.auto}
-                    control={<Radio />}
-                    label={BOT_MODE_NAMES[BOT_MODES.auto]}
-                  />
-                </RadioGroup>
-              </FormControl>
+              <BotModeControl bot={bot} />
             </Grid>
           </Grid>
         </div>
@@ -104,10 +71,4 @@ export default function BotDialog({ bot, isOpen, onClose }) {
 
 const FormContainer = styled(Container)`
   padding-top: 40px;
-  background-color: ${(props) =>
-    props.botMode === 0
-      ? "rgba(0, 128, 28, .5)"
-      : props.$botMode === 1
-      ? "rgba(128, 0, 28, .5)"
-      : "rgba(64, 64, 28, .4)"};
 `;
