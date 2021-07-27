@@ -5,6 +5,7 @@ import useMeasure from "react-use-measure";
 import { green, red, blue } from "@material-ui/core/colors";
 
 import { Box } from "@material-ui/core";
+import Draggable from "react-draggable";
 import ball from "../images/ball.svg";
 
 const gridLines = 20;
@@ -28,7 +29,6 @@ function Goal({ color, name }) {
       }}
       >
         {name}
-
       </div>
     </div>
   );
@@ -78,32 +78,60 @@ const GameField = ({ gameState, gameConfig }) => {
   const bot2X = getPosition(gameState.bots[2].x * fieldWidthUnit + fieldCenterX, pieceWidth);
   const bot2Y = getPosition(-1 * gameState.bots[2].y * fieldHeightUnit + fieldCenterY, pieceHeight);
 
+  function handleDragStart(e) {
+    e.preventDefault();
+  }
+
+  function handleDragStop(e, name) {
+    const xPos = ((e.x - bounds.left - fieldCenterX) / fieldWidthUnit).toFixed(2);
+    const yPos = ((e.y - bounds.top - fieldCenterY) / fieldHeightUnit).toFixed(2);
+    console.log(`Move ${name} piece to (${xPos}, ${yPos})`);
+  }
+
   function Ball() {
     return (
-      <img
-        alt=""
-        src={ball}
-        width={pieceWidth || 0}
-        height={pieceHeight || 0}
-        style={{
-          position: "absolute",
-          left: ballX,
-          top: ballY,
-        }}
-      />
+      <Draggable
+        handle=".draggable"
+        defaultPosition={{ x: 0, y: 0 }}
+        grid={[1, 1]}
+        onStart={handleDragStart}
+        onStop={(e) => handleDragStop(e, "ball")}
+      >
+        <img
+          className="draggable"
+          alt=""
+          src={ball}
+          width={pieceWidth || 0}
+          height={pieceHeight || 0}
+          style={{
+            position: "absolute",
+            left: ballX,
+            top: ballY,
+          }}
+        />
+      </Draggable>
     );
   }
 
-  function PlayerPiece(styleProps) {
+  function PlayerPiece({ name, ...styleProps }) {
     return (
-      <Box
-        width={pieceWidth || 0}
-        height={pieceHeight || 0}
-        style={{
-          position: "absolute",
-          ...styleProps,
-        }}
-      />
+      <Draggable
+        handle=".draggable"
+        defaultPosition={{ x: 0, y: 0 }}
+        grid={[10, 10]}
+        onStart={handleDragStart}
+        onStop={(e) => handleDragStop(e, name)}
+      >
+        <Box
+          className="draggable"
+          width={pieceWidth || 0}
+          height={pieceHeight || 0}
+          style={{
+            position: "absolute",
+            ...styleProps,
+          }}
+        />
+      </Draggable>
     );
   }
 
@@ -125,8 +153,8 @@ const GameField = ({ gameState, gameConfig }) => {
         ref={containerRef}
       >
         <Ball />
-        <PlayerPiece left={bot1X} top={bot1Y} backgroundColor={red[400]} />
-        <PlayerPiece left={bot2X} top={bot2Y} backgroundColor={blue[400]} />
+        <PlayerPiece name="red" left={bot1X} top={bot1Y} backgroundColor={red[400]} />
+        <PlayerPiece name="blue" left={bot2X} top={bot2Y} backgroundColor={blue[400]} />
         <FieldGrid />
       </div>
       <Goal name="red goal" color={red[400]} />
