@@ -5,11 +5,34 @@ import useMeasure from "react-use-measure";
 import { green, red, blue } from "@material-ui/core/colors";
 
 import { Box } from "@material-ui/core";
+import Draggable from "react-draggable";
 import ball from "../images/ball.svg";
 
-const iconSize = 30;
 const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
+const playerDiameterInCM = 21;
+
+function Goal({ color, name }) {
+  return (
+    <div style={{
+      backgroundColor: color,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    }}
+    >
+      <div style={{
+        textOrientation: "mixed",
+        writingMode: "vertical-rl",
+        color: "white",
+        padding: 40,
+      }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+}
 
 function FieldCell() {
   return <div style={{ outline: "1px solid rgba(255,255,255,0.5)" }} />;
@@ -23,12 +46,12 @@ function FieldGrid() {
   );
 }
 
-function getPosition(value) {
+function getPosition(value, offset) {
   // Return 0, if the value is not a number
   if (Number.isNaN(value)) return 0;
 
   // Return value, adjusted for icon size
-  return `${value - (iconSize / 2)}px`;
+  return `${value - (offset / 2)}px`;
 }
 
 const GameField = ({ gameState, gameConfig }) => {
@@ -37,67 +60,105 @@ const GameField = ({ gameState, gameConfig }) => {
   // Calculate field dimensions
   const fieldCenterX = bounds.width / 2;
   const fieldCenterY = bounds.height / 2;
-  const fieldLength = gameConfig.bounds[2] - gameConfig.bounds[0];
-  const fieldWidth = gameConfig.bounds[1] - gameConfig.bounds[3];
-  const fieldLengthUnit = bounds.width / fieldLength;
-  const fieldWidthUnit = bounds.height / fieldWidth;
+  const fieldWidth = gameConfig.bounds[2] - gameConfig.bounds[0];
+  const fieldHeight = gameConfig.bounds[1] - gameConfig.bounds[3];
+  const fieldWidthUnit = bounds.width / fieldWidth;
+  const fieldHeightUnit = bounds.height / fieldHeight;
+  const pieceProportion = playerDiameterInCM / gameConfig.centimetersPerUnit;
+  const pieceHeight = pieceProportion * fieldHeightUnit;
+  const pieceWidth = pieceProportion * fieldWidthUnit;
 
   // Calculate ball position
-  const ballX = getPosition(gameState.bots[0].x * fieldLengthUnit + fieldCenterX);
-  const ballY = getPosition(-1 * gameState.bots[0].y * fieldWidthUnit + fieldCenterY);
+  const ballX = getPosition(gameState.bots[0].x * fieldWidthUnit + fieldCenterX, pieceWidth);
+  const ballY = getPosition(-1 * gameState.bots[0].y * fieldHeightUnit + fieldCenterY, pieceHeight);
 
   // Calculate player positions
-  const bot1X = getPosition(gameState.bots[1].x * fieldLengthUnit + fieldCenterX);
-  const bot1Y = getPosition(-1 * gameState.bots[1].y * fieldWidthUnit + fieldCenterY);
-  const bot2X = getPosition(gameState.bots[2].x * fieldLengthUnit + fieldCenterX);
-  const bot2Y = getPosition(-1 * gameState.bots[2].y * fieldWidthUnit + fieldCenterY);
+  const bot1X = getPosition(gameState.bots[1].x * fieldWidthUnit + fieldCenterX, pieceWidth);
+  const bot1Y = getPosition(-1 * gameState.bots[1].y * fieldHeightUnit + fieldCenterY, pieceHeight);
+  const bot2X = getPosition(gameState.bots[2].x * fieldWidthUnit + fieldCenterX, pieceWidth);
+  const bot2Y = getPosition(-1 * gameState.bots[2].y * fieldHeightUnit + fieldCenterY, pieceHeight);
 
-  return (
-    <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          margin: "0 30px 30px 30px",
-          backgroundColor: green[400],
-          position: "relative",
-        }}
-        ref={containerRef}
+  function handleDragStart(e) {
+    e.preventDefault();
+  }
+
+  function handleDragStop(e, name) {
+    const xPos = ((e.x - bounds.left - fieldCenterX) / fieldWidthUnit).toFixed(2);
+    const yPos = ((e.y - bounds.top - fieldCenterY) / fieldHeightUnit).toFixed(2);
+    console.log(`Move ${name} piece to (${xPos}, ${yPos})`);
+  }
+
+  function Ball() {
+    return (
+      <Draggable
+        handle=".draggable"
+        defaultPosition={{ x: 0, y: 0 }}
+        grid={[1, 1]}
+        onStart={handleDragStart}
+        onStop={(e) => handleDragStop(e, "ball")}
       >
         <img
+          className="draggable"
           alt=""
           src={ball}
-          width={iconSize}
-          height={iconSize}
+          width={pieceWidth || 0}
+          height={pieceHeight || 0}
           style={{
             position: "absolute",
             left: ballX,
             top: ballY,
           }}
         />
+      </Draggable>
+    );
+  }
+
+  function PlayerPiece({ name, ...styleProps }) {
+    return (
+      <Draggable
+        handle=".draggable"
+        defaultPosition={{ x: 0, y: 0 }}
+        grid={[10, 10]}
+        onStart={handleDragStart}
+        onStop={(e) => handleDragStop(e, name)}
+      >
         <Box
-          width={iconSize}
-          height={iconSize}
+          className="draggable"
+          width={pieceWidth || 0}
+          height={pieceHeight || 0}
           style={{
             position: "absolute",
-            left: bot1X,
-            top: bot1Y,
-            backgroundColor: red[400],
+            ...styleProps,
           }}
         />
-        <Box
-          width={iconSize}
-          height={iconSize}
-          style={{
-            position: "absolute",
-            left: bot2X,
-            top: bot2Y,
-            backgroundColor: blue[400],
-          }}
-        />
+      </Draggable>
+    );
+  }
+
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "auto 1fr auto",
+      margin: 30,
+    }}
+    >
+      <Goal name="blue goal" color={blue[400]} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          backgroundColor: green[400],
+          position: "relative",
+        }}
+        ref={containerRef}
+      >
+        <Ball />
+        <PlayerPiece name="red" left={bot1X} top={bot1Y} backgroundColor={red[400]} />
+        <PlayerPiece name="blue" left={bot2X} top={bot2Y} backgroundColor={blue[400]} />
         <FieldGrid />
       </div>
-    </>
+      <Goal name="red goal" color={red[400]} />
+    </div>
   );
 };
 
