@@ -68,3 +68,13 @@ export function sendAllBotsToAuto() {
     data,
   });
 }
+
+export function sendBotMode(botIndex, botMode) {
+  return sendMessage({
+    type: "botMode",
+    data: {
+      botIndex,
+      mode: botMode,
+    },
+  });
+}

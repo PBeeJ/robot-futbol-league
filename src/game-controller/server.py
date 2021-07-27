@@ -195,7 +195,7 @@ async def handleManualPositionMessage(websocket, data):
 
 
 async def handleBotModeMessage(websocket, data):
-    handleBotModesMessage(websocket, [data])
+    await handleBotModesMessage(websocket, [data])
 
 
 async def handleBotModesMessage(websocket, data):
@@ -293,10 +293,13 @@ async def handleMessage(websocket, path):
                 await handlePositionMessage(websocket, messageData)
             elif messageType == "positions":
                 await handlePositionsMessage(websocket, messageData)
+            # {type: "manualPosition", data {botIndex: 0, x: 0, y: 0, heading: 0}}
             elif messageType == "manualPosition":
                 await handleManualPositionMessage(websocket, messageData)
+            # {type: "botMode", data: {botindex: 0, mode: 0}}
             elif messageType == "botMode":
                 await handleBotModeMessage(websocket, messageData)
+            # {type: "botModes", data: [{botindex: 0, mode: 0}}]
             elif messageType == "botModes":
                 await handleBotModesMessage(websocket, messageData)
             elif messageType == "silence":
