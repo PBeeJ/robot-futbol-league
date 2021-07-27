@@ -12,7 +12,6 @@ export default function BotCards({ bots }) {
 
   const handleOnClose = () => setIsDialogOpen(false);
   const handleBotClick = (bot) => {
-    console.log("got bot click");
     setSelectedBot(bot);
     setIsDialogOpen(true);
   };
