@@ -40,6 +40,13 @@ def rotate_right(throttle=MAX_THROTTLE):
         rightMotor.throttle = -1 * throttle
 
 
+def veer_right(throttle=MAX_THROTTLE):
+    for leftMotor in leftMotors:
+        leftMotor.throttle = throttle
+    for rightMotor in rightMotors:
+        rightMotor.throttle = .6 * throttle
+
+
 def move_forward(throttle=MAX_THROTTLE):
     for motor in [*leftMotors, *rightMotors]:
         motor.throttle = throttle

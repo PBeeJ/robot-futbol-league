@@ -57,10 +57,10 @@ async def state_update_task():
                     message_data = data.get("data")
                     if message_type == "state":
                         if(GAME_STATE == None):
-                            print('GAME_STATE init: ' + message)
+                            # print('GAME_STATE init: ' + message)
                             GAME_STATE = gameState.GameState(message_data)
                         else:
-                            print('GAME_STATE update: ' + message)
+                            # print('GAME_STATE update: ' + message)
                             GAME_STATE.updateFromMessage(message_data)
                     elif message_type == "config":
                         GAME_CONFIG = message_data
@@ -132,11 +132,10 @@ async def movement_task():
 
 
 def should_call_movement_callback(botMode, gameStatus):
-    # Uncomment!!!
-    print(f'movement_callback: {movement_callback}, botMode {botMode} and gameStatus {gameStatus}')
+    # print(f'movement_callback: {movement_callback}, botMode {botMode} and gameStatus {gameStatus}')
     shouldcall = (movement_callback and
         botMode == enums.BOT_MODES.auto.value and
         gameStatus.value == enums.GAME_STATES.game_on.value)
 
-    print(f'evaluates to:{shouldcall}')
+    # print(f'evaluates to:{shouldcall}')
     return shouldcall

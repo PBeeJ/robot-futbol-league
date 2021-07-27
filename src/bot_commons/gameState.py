@@ -36,10 +36,10 @@ class GameState:
 
     def toString(self):
         return f"""
-gameStatus: {self.gameStatus}
-ballBot: {self.ballBot.toString() if self.ballBot else 'None'}
-bot1: {self.bot1.toString() if self.bot1 else 'None'}
-bot2: {self.bot2.toString() if self.bot2 else 'None'}
+  gameStatus: {self.gameStatus}
+  ballBot:    {self.ballBot.toString() if self.ballBot else 'None'}
+  bot1:       {self.bot1.toString() if self.bot1 else 'None'}
+  bot2:       {self.bot2.toString() if self.bot2 else 'None'}
 """
 
     # state = {
@@ -92,4 +92,4 @@ bot2: {self.bot2.toString() if self.bot2 else 'None'}
                     self.bot2.updatePos(botMsg["x"], botMsg["y"])
 
         self.gameStatus = enums.GAME_STATES(message["gameStatus"]["state"])
-        print(f"GameState object update from message DONE:\n{self.toString()}")
+        print(f"GameState object update from message DONE:{self.toString()}")
