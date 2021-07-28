@@ -56,21 +56,21 @@ async def state_update_task():
                     message_type = data.get("type")
                     message_data = data.get("data")
                     if message_type == "state":
+                        print('GAME_STATE update: ' + message)
                         if(GAME_STATE == None):
-                            # print('GAME_STATE init: ' + message)
                             GAME_STATE = gameState.GameState(message_data)
                         else:
-                            # print('GAME_STATE update: ' + message)
                             GAME_STATE.updateFromMessage(message_data)
                     elif message_type == "config":
                         GAME_CONFIG = message_data
                     elif message_type == "iseeu":
-                        print('WHO_AM_I message: ' + message)
+                        # print('WHO_AM_I message: ' + message)
                         WHO_AM_I = message_data
+                        if GAME_STATE is not None:
+                            GAME_STATE.updateMyName(message_data["knownBot"]["name"])
                     await asyncio.sleep(1)
         except:
             traceback.print_exc()
-
 
         controller_socket = None
         print('socket disconnected.  Reconnecting in 5 sec...')
@@ -81,26 +81,31 @@ async def send_heading_task():
     global COMPASS_HEADING
     global controller_socket
     while True:
-        newHeading = compass.get_heading()
-        if newHeading > COMPASS_HEADING + 1 or newHeading < COMPASS_HEADING - 1:
-            COMPASS_HEADING = newHeading
-            message = json.dumps({
-                "type": "heading",
-                "data": {
-                    "heading": newHeading,
-                    # TODO : remove this should not be needed
-                    "botIndex": 0
-                }
-            })
-            # print(f"sending compass heading {message}")
-            if controller_socket:
-                try:
-                    await controller_socket.send(message)
-                except:
-                    print("socket error in send_heading_task:",
-                          sys.exc_info()[0])
-
         await asyncio.sleep(.25)
+        try:
+            newHeading = compass.get_heading()
+            if GAME_STATE is not None:
+                GAME_STATE.updateHeading(newHeading)
+            # Now that we've set heading locally, I don't think we have to send it to the game controller
+            # so commenting that out, at least for now
+            # if newHeading > COMPASS_HEADING + 1 or newHeading < COMPASS_HEADING - 1:
+            #     COMPASS_HEADING = newHeading
+            #     message = json.dumps({
+            #         "type": "heading",
+            #         "data": {
+            #             "heading": newHeading,
+            #             # TODO : remove this should not be needed
+            #             "botIndex": 0
+            #         }
+            #     })
+            #     # print(f"sending compass heading {message}")
+            #     if controller_socket:
+            #         await controller_socket.send(message)
+
+        except: # catch *all* exceptions, print them, get over it
+            traceback.print_exc()
+
+
 
 
 async def movement_task():
@@ -127,7 +132,7 @@ async def movement_task():
                 if knownBot:
                     # TODO : move to GAME_CONFIG["botHomes"][knownBot.index]
                     pass
-        except: # catch *all* exceptions
+        except: # catch *all* exceptions, print them, get over it
             traceback.print_exc()
 
 
