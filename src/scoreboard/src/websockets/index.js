@@ -34,7 +34,7 @@ function handleMessage(event) {
   onMessage(data);
 }
 
-function sendMessage(obj) {
+export function sendMessage(obj) {
   return ws.send(JSON.stringify(obj));
 }
 

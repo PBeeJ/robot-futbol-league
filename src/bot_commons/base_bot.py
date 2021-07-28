@@ -5,9 +5,11 @@ import sys
 import json
 import asyncio
 import websockets
+import traceback
 
 from commons import enums
-from bot_commons import compass
+from bot_commons import compass, gameState
+
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
@@ -15,6 +17,7 @@ GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
 GAME_CONFIG = None
 GAME_STATE = None
 WHO_AM_I = None
+botIndex = None
 
 COMPASS_HEADING = 0
 
@@ -48,19 +51,26 @@ async def state_update_task():
                 controller_socket = websocket
             # take messages from the web socket and push them into the queue
                 async for message in websocket:
-                    print(message)
+                    # print('state_update_task: ' + message)
                     data = json.loads(message)
                     message_type = data.get("type")
                     message_data = data.get("data")
                     if message_type == "state":
-                        GAME_STATE = message_data
+                        if(GAME_STATE == None):
+                            # print('GAME_STATE init: ' + message)
+                            GAME_STATE = gameState.GameState(message_data)
+                        else:
+                            # print('GAME_STATE update: ' + message)
+                            GAME_STATE.updateFromMessage(message_data)
                     elif message_type == "config":
                         GAME_CONFIG = message_data
                     elif message_type == "iseeu":
+                        print('WHO_AM_I message: ' + message)
                         WHO_AM_I = message_data
-                    await asyncio.sleep(0)
+                    await asyncio.sleep(1)
         except:
-            pass
+            traceback.print_exc()
+
 
         controller_socket = None
         print('socket disconnected.  Reconnecting in 5 sec...')
@@ -99,25 +109,33 @@ async def movement_task():
 
     while True:
         await asyncio.sleep(.05)
+        try:
+            knownBot = WHO_AM_I and WHO_AM_I["knownBot"]
+            botMode = enums.BOT_MODES.manual.value if not knownBot else knownBot["mode"]
+            if(not GAME_STATE):
+                print("No Game State yet, maybe game controller is down?  Waiting 5 seconds")
+                await asyncio.sleep(5)
+                continue
+            gameStatus = GAME_STATE.gameStatus
 
-        knownBot = WHO_AM_I and WHO_AM_I["knownBot"]
-        botMode = enums.BOT_MODES.manual.value if not knownBot else knownBot["mode"]
-        gameState = GAME_STATE["gameStatus"]["state"]
-
-        if should_call_movement_callback(botMode, gameState):
-            movement_callback()
-        elif botMode == enums.BOT_MODES.manual.value:
-            # TODO : move to GAME_STATE[knownBot[index]]["manualPosition"]
-            pass
-        elif gameState == enums.GAME_STATES.going_home.value:
-            if knownBot:
-                # TODO : move to GAME_CONFIG["botHomes"][knownBot.index]
+            if should_call_movement_callback(botMode, gameStatus):
+                movement_callback()
+            elif botMode == enums.BOT_MODES.manual.value:
+                # TODO : move to GAME_STATE[knownBot[index]]["manualPosition"]
                 pass
+            elif gameStatus == enums.GAME_STATES.return_home.value:
+                if knownBot:
+                    # TODO : move to GAME_CONFIG["botHomes"][knownBot.index]
+                    pass
+        except: # catch *all* exceptions
+            traceback.print_exc()
 
 
-def should_call_movement_callback(botMode, gameState):
-    return (
-        movement_callback and
+def should_call_movement_callback(botMode, gameStatus):
+    # print(f'movement_callback: {movement_callback}, botMode {botMode} and gameStatus {gameStatus}')
+    shouldcall = (movement_callback and
         botMode == enums.BOT_MODES.auto.value and
-        gameState == enums.GAME_STATES.game_on.value
-    )
+        gameStatus.value == enums.GAME_STATES.game_on.value)
+
+    # print(f'evaluates to:{shouldcall}')
+    return shouldcall

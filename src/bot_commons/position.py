@@ -2,6 +2,10 @@ from commons import enums
 from bot_commons import base_bot
 
 
+def botIndex():
+    print(f"position.botIndex.WHO_AM_I {base_bot.WHO_AM_I}")
+    return base_bot.WHO_AM_I["knownBot"]["index"]
+
 def get_bot_position(botIndex):
     bot = base_bot.GAME_STATE["bots"][botIndex]
     return {
@@ -12,7 +16,7 @@ def get_bot_position(botIndex):
 
 
 def get_my_position():
-    return get_bot_position(base_bot.WHO_AM_I["botIndex"])
+    return get_bot_position(botIndex())
 
 
 def get_ball_position():
