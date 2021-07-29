@@ -16,11 +16,11 @@ export default function BotCard({ bot, onClick }) {
       <FlexRow style={{ textAlign: "center" }}>
         <FlexCell>
           <P>
-            ({bot.x},{bot.y})
+            ({bot.x.toFixed(1)},{bot.y.toFixed(1)})
           </P>
         </FlexCell>
         <FlexCell>
-          <P>{bot.heading}°</P>
+          &nbsp;<P>{bot.heading}°</P>
         </FlexCell>
       </FlexRow>
     </OurContainer>
