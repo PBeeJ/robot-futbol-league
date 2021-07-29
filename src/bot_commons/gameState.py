@@ -28,15 +28,40 @@ class BotState:
 # direction...maybe)
 class GameState:
     def __init__(self, message):
+        # The name of Local bot
+        self.myName = None
+        # The heading of Local bot
+        self.heading = None
         self.ballBot = None
         self.bot1 = None
         self.bot2 = None
         self.gameStatus = None
         self.updateFromMessage(message)
 
+
+    def getLocalBot(self):
+        if myName == "ball-bot":
+            return ballBot
+        elif myName == "player-1":
+            return bot1
+        elif myName == "player-2":
+            return bot2
+
+
+    def updateHeading(self, newHeading):
+        self.heading = newHeading
+
+
+    def updateMyName(self, name):
+        print(f"Oh hey, I just learned my name is {name}. I am friend? ;)")
+        self.myName = name
+
+
     def toString(self):
         return f"""
   gameStatus: {self.gameStatus}
+  myName:  {self.myName}
+  heading: {self.heading}
   ballBot:    {self.ballBot.toString() if self.ballBot else 'None'}
   bot1:       {self.bot1.toString() if self.bot1 else 'None'}
   bot2:       {self.bot2.toString() if self.bot2 else 'None'}
