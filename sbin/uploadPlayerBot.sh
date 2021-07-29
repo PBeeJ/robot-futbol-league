@@ -31,3 +31,7 @@ scp -r src/setup.config $TARGET_HOST:$TARGET_DIR
 scp -r src/setup.py $TARGET_HOST:$TARGET_DIR
 
 ssh $TARGET_HOST "cd $TARGET_DIR && sudo python3 -m pip install -e ."
+
+# startup to run on boot
+scp sbin/rclocal/player-bot $TARGET_HOST:/etc/rc.local
+ssh $TARGET_HOST sudo chmod +x /etc/rc.local

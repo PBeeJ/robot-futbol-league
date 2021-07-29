@@ -19,8 +19,8 @@ async def read_stdin_task():
 
     while True:
         try:
-            updatesReceived = 0;
-            batch = [];
+            updatesReceived = 0
+            batch = []
             for line in iter(sys.stdin.readline, b''):
                 updatesReceived += 1
                 batch.append(line)
@@ -29,7 +29,8 @@ async def read_stdin_task():
                 # them to game-controller as one batch of three `positions` to minimize
                 # the number of game state updates that game-controller needs to send.
                 if updatesReceived % 3 == 0:
-                    message = "{\"type\": \"positions\", \"data\": [" + ",".join(batch) + "]}"
+                    message = "{\"type\": \"positions\", \"data\": [" + ",".join(
+                        batch) + "]}"
                     print(message)
                     if controllerSocket:
                         await controllerSocket.send(message)
@@ -40,11 +41,12 @@ async def read_stdin_task():
         except KeyboardInterrupt:
             break
 
-        except:
-            pass
+        except Exception as e:
+            print(f"got exception: {e}")
 
         await asyncio.sleep(0)
         print("dropped out of read stdin loop")
+
 
 async def ws_client_task():
     global controllerSocket
@@ -65,7 +67,6 @@ async def ws_client_task():
 
         except:
             print("socket error:", sys.exc_info()[0])
-
 
         controllerSocket = None
         print('dropped out of webSockets connect context.  Reconnecting in 5 sec...')

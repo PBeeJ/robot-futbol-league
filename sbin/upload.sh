@@ -5,3 +5,4 @@ set -x
 
 ./sbin/uploadBallBot.sh
 ./sbin/uploadGameController.sh
+./sbin/uploadPlayerBot.sh

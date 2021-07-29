@@ -1,0 +1,32 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+TARGET_DIR="/home/pi/robot-futbol-league"
+LOGS_DIR="$TARGET_DIR/logs"
+
+
+exec 1>$LOGS_DIR/rc.local.log 2>&1  # send stdout and stderr from rc.local to a log file
+set -x
+
+# and the websockets server in a separate process
+echo "game-controller started from rc.local" >> $LOGS_DIR/game-controller.log
+cd $TARGET_DIR/game-controller
+python3 server.py >> $LOGS_DIR/game-controller.log 2>&1 &
+
+sleep 10
+
+# game-controller needs to start the streamer in the background...
+echo "marvelmind streamer started from rclocal" >> $LOGS_DIR/marvelmind_streamer.log 2>&1
+cd $TARGET_DIR/marvelmind-streamer
+./marvelmind_streamer | python3 ./ws_client.py >> $LOGS_DIR/marvelmind_streamer.log 2>&1
+
