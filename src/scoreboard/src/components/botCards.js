@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Container, Grid } from "@material-ui/core";
 
+import { yellow } from "@material-ui/core/colors";
 import { H2 } from "./styledComponents";
 
 import BotCard from "./botCard";
@@ -20,7 +21,7 @@ export default function BotCards({ bots }) {
     <Container>
       <Grid container spacing={2}>
         <Grid item xs={12} style={{ justifyContent: "center" }}>
-          <H2>Robots</H2>
+          <H2 style={{ color: yellow[800] }}>Robots</H2>
         </Grid>
         {bots.map((bot) => (
           <Grid item key={bot.name}>

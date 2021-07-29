@@ -130,7 +130,7 @@ const GameControls = ({ gameStateState, hasManualBot }) => {
 
   return (
     <OurContainer>
-      <Grid container spacing={2} align="center" justifyContent="center">
+      <Grid style={{ gridGap: 20 }} container spacing={2} align="center" justifyContent="center">
         <Buttons />
       </Grid>
       <ConfirmDialogStartWithBotsOffline
@@ -166,9 +166,13 @@ const BigAssButton = styled(Fab).attrs((props) => ({
   variant: "extended",
   ...props,
 }))`
-  background-color: ${green.A400};
-  margin-right: 20px;
-  padding: 22px;
+  background-color: ${green[500]};
+  color: rgba(255,255,255,0.7);
+  padding: 0px 22px;
+  height: auto;
+  &:hover {
+    background-color: ${green[700]};
+  }
 `;
 
 const LesserButton = styled(Fab).attrs((props) => ({
@@ -176,8 +180,7 @@ const LesserButton = styled(Fab).attrs((props) => ({
   variant: "extended",
   ...props,
 }))`
-  background-color: ${blueGrey["100"]};
-  margin-right: 20px;
+  background-color: ${blueGrey[100]};
   padding: 12px;
   width: 100px;
 `;

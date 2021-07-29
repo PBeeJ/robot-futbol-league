@@ -28,3 +28,8 @@ button:disabled {
     url("./fonts/SoccerLeague.ttf") format("truetype");
   font-weight: normal;
 }
+
+/* Unviversal Box Sizing */
+*, *:before, *:after {
+  box-sizing: border-box;
+}

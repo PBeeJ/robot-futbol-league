@@ -29,6 +29,7 @@ export default function BotCard({ bot, onClick }) {
 
 const OurContainer = styled(Card)`
   cursor: pointer;
+  color: rgba(255,255,255,0.95);
   background-color: ${(props) =>
     props.$botMode === 0
       ? "rgba(0, 128, 28, .5)"
