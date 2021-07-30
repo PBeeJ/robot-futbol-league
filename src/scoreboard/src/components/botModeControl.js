@@ -12,8 +12,8 @@ import { sendBotMode, sendManualPosition } from "../websockets";
 import { Label } from "./styledComponents";
 
 export default function BotModeControl({ bot }) {
-  const [x, setX] = useState(bot.x.toFixed(2));
-  const [y, setY] = useState(bot.y.toFixed(2));
+  const [x, setX] = useState(0);
+  const [y, setY] = useState(0);
   if (!bot) {
     return null;
   }
@@ -49,7 +49,7 @@ export default function BotModeControl({ bot }) {
         </RadioGroup>
       </OurContainer>
       <OurContainer botMode={bot.mode}>
-        <Label>Manual position</Label>
+        <Label>X position</Label>
         <Slider
           style={{ marginTop: 10 }}
           label="x postition"
@@ -60,6 +60,7 @@ export default function BotModeControl({ bot }) {
           max={10}
           min={-10}
         />
+        <Label>Y position</Label>
         <Slider
           style={{ marginTop: 10, marginBottom: 10 }}
           label="y postition"

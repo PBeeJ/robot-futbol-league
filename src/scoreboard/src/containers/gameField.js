@@ -3,17 +3,18 @@ import { connect } from "react-redux";
 import useMeasure from "react-use-measure";
 
 import { green, red, blue } from "@material-ui/core/colors";
+import { Box, Button } from "@material-ui/core";
 
-import { Box } from "@material-ui/core";
+import { increaseScore, decreaseScore } from "../websockets";
 
 const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
 const playerDiameterInCM = 21;
 
-function Goal({ color, name }) {
+function Goal({ botIndex, showControls }) {
   return (
     <div style={{
-      backgroundColor: color,
+      backgroundColor: botIndex === 0 ? red[400] : blue[400],
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -26,7 +27,23 @@ function Goal({ color, name }) {
         padding: 40,
       }}
       >
-        {name}
+        {showControls && (
+          <Button
+            style={{ backgroundColor: "rgba(255,255,255,0.3)", marginBottom: 20 }}
+            onClick={() => increaseScore(botIndex)}
+          >
+            Goal++
+          </Button>
+        )}
+        {botIndex === 0 ? "red goal" : "blue goal"}
+        {showControls && (
+          <Button
+            style={{ backgroundColor: "rgba(255,255,255,0.3)", marginTop: 20 }}
+            onClick={() => decreaseScore(botIndex)}
+          >
+            Goal--
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -78,7 +95,7 @@ function PlayerPiece({
   );
 }
 
-const GameField = ({ gameState, gameConfig }) => {
+const GameField = ({ gameState, gameConfig, showControls }) => {
   const [containerRef, bounds] = useMeasure();
   const [positions, setPositions] = useState(
     { 0: { x: 0, y: 0 }, 1: { x: 0, y: 0 }, 2: { x: 0, y: 0 } },
@@ -121,7 +138,7 @@ const GameField = ({ gameState, gameConfig }) => {
       width: "100%",
     }}
     >
-      <Goal name="blue goal" color={blue[400]} />
+      <Goal botIndex={0} showControls={showControls} />
       <div
         style={{
           display: "flex",
@@ -154,7 +171,7 @@ const GameField = ({ gameState, gameConfig }) => {
         />
         <FieldGrid />
       </div>
-      <Goal name="red goal" color={red[400]} />
+      <Goal botIndex={1} showControls={showControls} />
     </div>
   );
 };

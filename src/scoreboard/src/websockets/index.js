@@ -90,3 +90,11 @@ export function sendManualPosition(botIndex, x, y) {
     },
   });
 }
+
+export function increaseScore(botIndex) {
+  console.log(`can we please increase the score for player ${botIndex}`);
+}
+
+export function decreaseScore(botIndex) {
+  console.log(`can we please decrease the score for player ${botIndex}`);
+}
