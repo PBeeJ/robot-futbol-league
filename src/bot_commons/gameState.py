@@ -1,55 +1,74 @@
-import time
 from commons import enums
 from bot_commons import dumper
+from collections import deque
+import asyncio
+
+
+HISTORY_SIZE = 3
+
+LOCAL_BOT = None
+TORQUE_STATE = None
+
 
 class BotState:
-    def __init__(self, x: float, y: float):
-        self.x = x
-        self.y = y
-        self.timestamp = time.time()
-        # This is based on the last two readings, and is change in positional units per second
-        self.dx: float = None
-        self.dy: float = None
+    # We keep track of up to HISTORY_SIZE consecutive datapoints for all bots.
+    # Heading is only not None for the local bot.
+    # ts = timestamp
+    def __init__(self):
+        self.ptuple = deque([], HISTORY_SIZE)
 
-    def updatePos(self, x, y):
-        ts = time.time()
-        self.dx = (x - self.x) / (ts - self.timestamp)
-        self.dy = (y - self.y) / (ts - self.timestamp)
-        self.x = x
-        self.y = y
-        self.timestamp = ts
+    def updatePos(self, x, y, ts):
+        # previous locations for first and second derivatives
+        self.ptuple.appendleft((x, y, ts))
 
     def toString(self):
-        return f"x: {self.x} y: {self.y} ts: {self.timestamp} dx: {self.dx} dy: {self.dy}"
+        return f"(x,y,ts)[0]: {self.ptuple[0] if self.ptuple else 'None'} (x,y,ts)[1]: {self.ptuple[1] if self.ptuple and len(self.ptuple) > 1 else 'None'} "
+
+def stable(ptuple0, ptuple1):
+    return (abs(ptuple0[0] - ptuple1[0]) < 0.05 and
+    abs(ptuple0[1] - ptuple1[1]) < 0.05 and
+    abs(ptuple0[2] - ptuple1[2]) > 0.2 and
+    abs(ptuple0[3] - ptuple1[3]) < 2)
+
+class LocalBotState(BotState):
+    # h = heading
+    def __init__(self):
+        self.ptuple = deque([], HISTORY_SIZE)
+
+    def updatePos(self, x: float, y: float, ts: float, h: float):
+        self.ptuple.appendleft((x, y, ts, h))
+
+    def toString(self):
+        return f"(x,y,ts,h)[0]: {self.ptuple[0] if self.ptuple else 'None'} (x,y,ts)[1]: {self.ptuple[1] if self.ptuple and len(self.ptuple) > 1 else 'None'} "
+
+    async def getStableLocation(self):
+        # print("Calling getStableLocation")
+        while True:
+            if len(self.ptuple) > 1 and stable(self.ptuple[0], self.ptuple[1]):
+                # print("Found stableLocation")
+                return self.ptuple[0]
+            else:
+                # print("Location isn't stable yet, waiting a bit")
+                await asyncio.sleep(0.5)
+
+
 
 
 # GameState that's relevant to bots as they do their bot thing (figure out where to go & what to do)
 # Note heading is omitted (bots only need to know their own heading, and only while they're changing
 # direction...maybe)
 class GameState:
-    def __init__(self, message):
+    def __init__(self, message, timestamp, heading):
         # The name of Local bot
         self.myName = None
-        # The heading of Local bot
-        self.heading = None
-        self.ballBot = None
-        self.bot1 = None
-        self.bot2 = None
+        # Dict of bots
+        self.bots = {}
         self.gameStatus = None
-        self.updateFromMessage(message)
+        self.updateFromMessage(message, timestamp, heading)
 
 
-    def getLocalBot(self):
-        if myName == "ball-bot":
-            return ballBot
-        elif myName == "player-1":
-            return bot1
-        elif myName == "player-2":
-            return bot2
-
-
-    def updateHeading(self, newHeading):
-        self.heading = newHeading
+    def getLocalBot(self) -> LocalBotState:
+        return self.bots[self.myName] if self.myName in self.bots else None
 
 
     def updateMyName(self, name):
@@ -61,60 +80,29 @@ class GameState:
         return f"""
   gameStatus: {self.gameStatus}
   myName:  {self.myName}
-  heading: {self.heading}
-  ballBot:    {self.ballBot.toString() if self.ballBot else 'None'}
-  bot1:       {self.bot1.toString() if self.bot1 else 'None'}
-  bot2:       {self.bot2.toString() if self.bot2 else 'None'}
+  ball-bot:    {self.bots["ball-bot"].toString() if "ball-bot" in self.bots else 'None'}
+  player-1:    {self.bots["player-1"].toString() if "player-1" in self.bots else 'None'}
+  player-2:    {self.bots["player-2"].toString() if "player-2" in self.bots else 'None'}
 """
 
-    # state = {
-    #     "gameStatus": {"state": 0, "secondsRemaining": 0},
-    #     "bots": [
-    #         {
-    #             "name": "ball-bot",
-    #             "index": 0,
-    #             "mode": 0,
-    #             "x": 0.0,
-    #             "y": -2.8,
-    #             "heading": 161.8,
-    #             "manualPosition": {"x": 0, "y": 0, "heading": 0},
-    #         },
-    #         {
-    #             "name": "player-1",
-    # ...
-    #        },
-    #         {
-    #             "name": "player-2",
-    #             "manualPosition": {"x": 0, "y": 0, "heading": 0},
-    #         },
-    #     ],
-    #     "scores": [0, 0],
-    #     "isDirty": false,
-    # }
 
-    def updateFromMessage(self, message):
+    def updateFromMessage(self, message, timestamp, heading):
         # print(f"GameState object update from Message: {message}")
 
-        for botMsg in message["bots"]:
-            if botMsg["name"] == "ball-bot":
-                if self.ballBot == None:
-                    # print("Initializing ballBot")
-                    self.ballBot = BotState(botMsg["x"], botMsg["y"])
-                    # print(f"JUST finished INITIALIZING self.ballBot: {self.ballBot.toString()}")
-                else:
-                    # print("Updating ballBot")
-                    self.ballBot.updatePos(botMsg["x"], botMsg["y"])
-                    # print(f"JUST finished UPDATING self.ballBot: {self.ballBot.toString()}")
-            elif botMsg["name"] == "player-1":
-                if self.bot1 == None:
-                    self.bot1 = BotState(botMsg["x"], botMsg["y"])
-                else:
-                    self.bot1.updatePos(botMsg["x"], botMsg["y"])
-            elif botMsg["name"] == "player-2":
-                if self.bot2 == None:
-                    self.bot2 = BotState(botMsg["x"], botMsg["y"])
-                else:
-                    self.bot2.updatePos(botMsg["x"], botMsg["y"])
-
         self.gameStatus = enums.GAME_STATES(message["gameStatus"]["state"])
-        print(f"GameState object update from message DONE:{self.toString()}")
+
+        if self.myName == None:
+            print("I need to know who I am before I can updateFromMessage for bots.  Ignoring bots part of message.")
+            return
+
+        for botMsg in message["bots"]:
+            botName = botMsg["name"]
+            if self.myName == botName:
+                if botName not in self.bots:
+                    self.bots[botName] = LocalBotState()
+                self.bots[botName].updatePos(botMsg["x"], botMsg["y"], timestamp, heading)
+                # print(f"Updated LocalBot State: {self.getLocalBot().toString()}")
+            else:
+                if botName not in self.bots:
+                    self.bots[botName] = BotState()
+                self.bots[botName].updatePos(botMsg["x"], botMsg["y"], timestamp)
