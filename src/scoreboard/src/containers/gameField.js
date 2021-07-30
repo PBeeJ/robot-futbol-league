@@ -1,19 +1,76 @@
 import React, { useState, useEffect } from "react";
-import { connect } from "react-redux";
 import useMeasure from "react-use-measure";
 
 import { green, red, blue } from "@material-ui/core/colors";
 
-import { Box } from "@material-ui/core";
 import Draggable from "react-draggable";
-import ball from "../images/ball.svg";
+import { connect } from "react-redux";
 import { sendMessage } from "../websockets";
 
 const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
 const playerDiameterInCM = 21;
 
-// TODO: prevent the game state from updating, if the state is being dragged
+function handleDragStart(e, botIndex, setIsDragging) {
+  setIsDragging(true);
+
+  // TODO: use this data, to set a ghost element that will show where the item was dragged from
+  console.log({ x: e.target.offsetLeft, y: e.target.offsetTop, botIndex });
+
+  // Prevent default dragging
+  e.preventDefault();
+}
+
+function handleDragStop(
+  e, botIndex, setIsDragging, bounds, fieldCenterX,
+  fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+) {
+  const x = parseFloat(((e.x - bounds.left - fieldCenterX) / fieldWidthUnit).toFixed(2));
+  const y = parseFloat(((e.y - bounds.top - fieldCenterY) / fieldHeightUnit).toFixed(2));
+  const messageObject = {
+    type: "manualPosition",
+    data: { botIndex, x, y, heading: null },
+  };
+  sendMessage(messageObject);
+
+  setIsDragging(false);
+}
+
+function PlayerPiece({
+  botIndex,
+  backgroundColor,
+  handleStart,
+  handleStop,
+  positions,
+  pieceHeight,
+  pieceWidth,
+}) {
+  const transform = `translate(${positions[botIndex].x}, ${positions[botIndex].y})`;
+  return (
+    <Draggable
+      handle=".draggable"
+      defaultPosition={{ x: 0, y: 0 }}
+      grid={[1, 1]}
+      onStart={handleStart}
+      onStop={handleStop}
+    >
+      <div
+        className="draggable"
+        style={{
+          position: "absolute",
+          zIndex: 1,
+          left: 0,
+          top: 0,
+          backgroundColor,
+          borderRadius: pieceHeight && botIndex === 0 ? pieceHeight : 0,
+          width: pieceWidth || 0,
+          height: pieceHeight || 0,
+          transform,
+        }}
+      />
+    </Draggable>
+  );
+}
 
 function Goal({ color, name }) {
   return (
@@ -51,13 +108,13 @@ function FieldGrid() {
 
 function getPosition(value, offset) {
   // Return 0, if the value is not a number
-  if (Number.isNaN(value)) return 0;
+  if (Number.isNaN(value)) return "0px";
 
   // Return value, adjusted for icon size
-  return `${value - (offset / 2)}px`;
+  return `${parseInt(value - (offset / 2), 10)}px`;
 }
 
-const GameField = ({ gameState, gameConfig }) => {
+const GameField = ({ gameConfig, gameState }) => {
   const [containerRef, bounds] = useMeasure();
   const [isDragging, setIsDragging] = useState(false);
   const [positions, setPositions] = useState(
@@ -95,84 +152,6 @@ const GameField = ({ gameState, gameConfig }) => {
     }
   }, [isDragging, gameState]);
 
-  function handleDragStart(e, botIndex) {
-    console.log("handleDragStart");
-    setIsDragging(true);
-
-    // TODO: use this data, to set a ghost element that will show where the item was dragged from
-    console.log({ x: e.target.offsetLeft, y: e.target.offsetTop, botIndex });
-
-    // Prevent default dragging
-    e.preventDefault();
-  }
-
-  function handleDragStop(e, botIndex) {
-    console.log("handleDragStop");
-    const x = parseFloat(((e.x - bounds.left - fieldCenterX) / fieldWidthUnit).toFixed(2));
-    const y = parseFloat(((e.y - bounds.top - fieldCenterY) / fieldHeightUnit).toFixed(2));
-    const messageObject = {
-      type: "manualPosition",
-      data: {
-        botIndex, x, y, heading: null,
-      },
-    };
-    sendMessage(messageObject);
-
-    setIsDragging(false);
-  }
-
-  function Ball() {
-    return (
-      <Draggable
-        handle=".draggable"
-        defaultPosition={{ x: 0, y: 0 }}
-        grid={[1, 1]}
-        onStart={handleDragStart}
-        onStop={(e) => handleDragStop(e, 0)}
-        // disabled={!enableDragging}
-      >
-        <img
-          className="draggable"
-          alt=""
-          src={ball}
-          width={pieceWidth || 0}
-          height={pieceHeight || 0}
-          style={{
-            position: "absolute",
-            zIndex: 1,
-            left: positions[0].x,
-            top: positions[0].y,
-          }}
-          // draggable={enableDragging}
-        />
-      </Draggable>
-    );
-  }
-
-  function PlayerPiece({ botIndex, ...styleProps }) {
-    return (
-      <Draggable
-        handle=".draggable"
-        defaultPosition={{ x: 0, y: 0 }}
-        grid={[10, 10]}
-        onStart={handleDragStart}
-        onStop={(e) => handleDragStop(e, botIndex)}
-        // disabled={!enableDragging}
-      >
-        <Box
-          className="draggable"
-          width={pieceWidth || 0}
-          height={pieceHeight || 0}
-          style={{
-            position: "absolute",
-            zIndex: 1,
-            ...styleProps,
-          }}
-        />
-      </Draggable>
-    );
-  }
-
   return (
     <div style={{
       display: "grid",
@@ -192,18 +171,41 @@ const GameField = ({ gameState, gameConfig }) => {
         }}
         ref={containerRef}
       >
-        <Ball />
         <PlayerPiece
           botIndex={0}
-          left={positions[1].x}
-          top={positions[1].y}
-          backgroundColor={red[400]}
+          backgroundColor="white"
+          handleStart={(e) => handleDragStart(e, 0, setIsDragging)}
+          handleStop={(e) => handleDragStop(
+            e, 0, setIsDragging, bounds,
+            fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+          )}
+          positions={positions}
+          pieceHeight={pieceHeight}
+          pieceWidth={pieceWidth}
         />
         <PlayerPiece
           botIndex={1}
-          left={positions[2].y}
-          top={positions[2].y}
+          backgroundColor={red[400]}
+          handleStart={(e) => handleDragStart(e, 1, setIsDragging)}
+          handleStop={(e) => handleDragStop(
+            e, 1, setIsDragging, bounds,
+            fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+          )}
+          positions={positions}
+          pieceHeight={pieceHeight}
+          pieceWidth={pieceWidth}
+        />
+        <PlayerPiece
+          botIndex={2}
           backgroundColor={blue[400]}
+          handleStart={(e) => handleDragStart(e, 2, setIsDragging)}
+          handleStop={(e) => handleDragStop(
+            e, 2, setIsDragging, bounds,
+            fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+          )}
+          positions={positions}
+          pieceHeight={pieceHeight}
+          pieceWidth={pieceWidth}
         />
         <FieldGrid />
       </div>

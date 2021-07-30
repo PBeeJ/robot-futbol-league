@@ -29,7 +29,6 @@ function handleClose() {
 }
 
 function handleMessage(event) {
-  // console.log("got ws message: ", event);
   const data = JSON.parse(event.data);
   onMessage(data);
 }

@@ -24,7 +24,7 @@ export default function BotCards({ bots }) {
           <H2 style={{ color: yellow[800] }}>Robots</H2>
         </Grid>
         {bots.map((bot) => (
-          <Grid item key={bot.name}>
+          <Grid item key={bot.name} style={{ gridGap: 20 }}>
             <BotCard bot={bot} onClick={handleBotClick} />
           </Grid>
         ))}

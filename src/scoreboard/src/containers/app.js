@@ -17,6 +17,7 @@ const App = () => {
   }, []);
 
   function handleWsMessage({ type, data }) {
+    // TODO: Maybe we could compare the state the the previous state here, to improve performnce
     switch (type) {
       case "state":
         dispatch(updateGameState(data));
