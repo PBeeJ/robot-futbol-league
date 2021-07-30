@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Container } from "@material-ui/core";
+import { Grid } from "@material-ui/core";
 import { brown, yellow } from "@material-ui/core/colors";
 
 import GameControls from "./gameControls";
@@ -12,13 +12,14 @@ import { H1, P } from "../components/styledComponents";
 // import { sendMessage } from "../websockets";
 
 const Admin = ({ gameState }) => (
-  <Container style={{
+  <Grid style={{
     display: "flex",
     flexDirection: "column",
     gridTemplateRows: "auto 1fr 1fr 1fr 5fr",
     justifyItems: "center",
     alignItems: "center",
-    backgroundColor: brown[500],
+    backgroundColor: brown[700],
+    padding: "0 20px",
 }}
   >
     <div style={{ display: "grid", justifyItems: "center", alignItems: "center" }}>
@@ -33,7 +34,7 @@ const Admin = ({ gameState }) => (
     <ScoreBoard />
     <BotCards bots={gameState.bots} />
     <GameField enableDragging />
-  </Container>
+  </Grid>
 );
 
 const mapStateToProps = ({ gameState }) => ({
