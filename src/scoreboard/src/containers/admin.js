@@ -9,6 +9,7 @@ import GameField from "./gameField";
 
 import BotCards from "../components/botCards";
 import { H1, P } from "../components/styledComponents";
+// import { sendMessage } from "../websockets";
 
 const Admin = ({ gameState }) => (
   <Container style={{

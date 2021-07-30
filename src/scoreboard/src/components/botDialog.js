@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { makeStyles } from "@material-ui/core/styles";
 import Dialog from "@material-ui/core/Dialog";
 import Container from "@material-ui/core/Container";
-import Grid from "@material-ui/core/Grid";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import IconButton from "@material-ui/core/IconButton";
@@ -58,11 +57,7 @@ export default function BotDialog({ bot, isOpen, onClose }) {
       </AppBar>
       <FormContainer botMode={bot.mode}>
         <div className={classes.toggleContainer}>
-          <Grid container spacing={2}>
-            <Grid item>
-              <BotModeControl bot={bot} />
-            </Grid>
-          </Grid>
+          <BotModeControl bot={bot} />
         </div>
       </FormContainer>
     </Dialog>

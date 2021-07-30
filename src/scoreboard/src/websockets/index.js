@@ -78,3 +78,15 @@ export function sendBotMode(botIndex, botMode) {
     },
   });
 }
+
+export function sendManualPosition(botIndex, x, y) {
+  return sendMessage({
+    type: "manualPosition",
+    data: {
+      botIndex,
+      x,
+      y,
+      heading: 0,
+    },
+  });
+}

@@ -1,16 +1,19 @@
-import React from "react";
 import styled from "styled-components";
+import React, { useState } from "react";
 
 import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormControl from "@material-ui/core/FormControl";
 
+import { Button, Grid, Slider } from "@material-ui/core";
 import { BOT_MODES, BOT_MODE_NAMES } from "../selectors/enums";
-import { sendBotMode } from "../websockets";
+import { sendBotMode, sendManualPosition } from "../websockets";
 import { Label } from "./styledComponents";
 
 export default function BotModeControl({ bot }) {
+  const [x, setX] = useState(bot.x.toFixed(2));
+  const [y, setY] = useState(bot.y.toFixed(2));
   if (!bot) {
     return null;
   }
@@ -24,26 +27,61 @@ export default function BotModeControl({ bot }) {
   };
 
   return (
-    <OurContainer botMode={bot.mode}>
-      <Label>BotMode</Label>
-      <RadioGroup
-        aria-label="bot mode"
-        name="botMode1"
-        value={bot.mode}
-        onChange={handleBotModeChange}
-      >
-        <FormControlLabel
-          value={BOT_MODES.manual}
-          control={<Radio />}
-          label={BOT_MODE_NAMES[BOT_MODES.manual]}
+    <Grid style={{ display: "grid", gridGap: 20 }}>
+      <OurContainer botMode={bot.mode}>
+        <Label>BotMode</Label>
+        <RadioGroup
+          aria-label="bot mode"
+          name="botMode1"
+          value={bot.mode}
+          onChange={handleBotModeChange}
+        >
+          <FormControlLabel
+            value={BOT_MODES.manual}
+            control={<Radio />}
+            label={BOT_MODE_NAMES[BOT_MODES.manual]}
+          />
+          <FormControlLabel
+            value={BOT_MODES.auto}
+            control={<Radio />}
+            label={BOT_MODE_NAMES[BOT_MODES.auto]}
+          />
+        </RadioGroup>
+      </OurContainer>
+      <OurContainer botMode={bot.mode}>
+        <Label>Manual position</Label>
+        <Slider
+          style={{ marginTop: 10 }}
+          label="x postition"
+          value={x}
+          onChange={(e, value) => setX(value)}
+          step={0.1}
+          valueLabelDisplay="on"
+          max={10}
+          min={-10}
         />
-        <FormControlLabel
-          value={BOT_MODES.auto}
-          control={<Radio />}
-          label={BOT_MODE_NAMES[BOT_MODES.auto]}
+        <Slider
+          style={{ marginTop: 10, marginBottom: 10 }}
+          label="y postition"
+          value={y}
+          onChange={(e, value) => setY(value)}
+          step={0.1}
+          valueLabelDisplay="on"
+          max={5}
+          min={-5}
         />
-      </RadioGroup>
-    </OurContainer>
+        <Button
+          style={{ marginTop: 10, marginBottom: 10 }}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            sendManualPosition(0, x, y);
+          }}
+        >
+          Send Manual position
+        </Button>
+      </OurContainer>
+    </Grid>
   );
 }
 
