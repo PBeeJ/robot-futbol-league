@@ -13,7 +13,7 @@ const Home = () => (
   <OurContainer>
     <Title>Robot Futbol League</Title>
     <ScoreBoard />
-    <GameField />
+    <GameField enableDragging={false} />
   </OurContainer>
 );
 

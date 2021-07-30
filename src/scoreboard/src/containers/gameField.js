@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import useMeasure from "react-use-measure";
 
@@ -12,6 +12,8 @@ import { sendMessage } from "../websockets";
 const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
 const playerDiameterInCM = 21;
+
+// TODO: prevent the game state from updating, if the state is being dragged
 
 function Goal({ color, name }) {
   return (
@@ -57,6 +59,10 @@ function getPosition(value, offset) {
 
 const GameField = ({ gameState, gameConfig }) => {
   const [containerRef, bounds] = useMeasure();
+  const [isDragging, setIsDragging] = useState(false);
+  const [positions, setPositions] = useState(
+    { 0: { x: 0, y: 0 }, 1: { x: 0, y: 0 }, 2: { x: 0, y: 0 } },
+  );
 
   // Calculate field dimensions
   const fieldCenterX = bounds.width / 2;
@@ -69,17 +75,31 @@ const GameField = ({ gameState, gameConfig }) => {
   const pieceHeight = pieceProportion * fieldHeightUnit;
   const pieceWidth = pieceProportion * fieldWidthUnit;
 
-  // Calculate ball position
-  const ballX = getPosition(gameState.bots[0].x * fieldWidthUnit + fieldCenterX, pieceWidth);
-  const ballY = getPosition(-1 * gameState.bots[0].y * fieldHeightUnit + fieldCenterY, pieceHeight);
-
-  // Calculate player positions
-  const bot1X = getPosition(gameState.bots[1].x * fieldWidthUnit + fieldCenterX, pieceWidth);
-  const bot1Y = getPosition(-1 * gameState.bots[1].y * fieldHeightUnit + fieldCenterY, pieceHeight);
-  const bot2X = getPosition(gameState.bots[2].x * fieldWidthUnit + fieldCenterX, pieceWidth);
-  const bot2Y = getPosition(-1 * gameState.bots[2].y * fieldHeightUnit + fieldCenterY, pieceHeight);
+  useEffect(() => {
+    if (!isDragging) {
+      // Calculate player positions
+      setPositions({
+        0: {
+          x: getPosition(gameState.bots[0].x * fieldWidthUnit + fieldCenterX, pieceWidth),
+          y: getPosition(-1 * gameState.bots[0].y * fieldHeightUnit + fieldCenterY, pieceHeight),
+        },
+        1: {
+          x: getPosition(gameState.bots[1].x * fieldWidthUnit + fieldCenterX, pieceWidth),
+          y: getPosition(-1 * gameState.bots[1].y * fieldHeightUnit + fieldCenterY, pieceHeight),
+        },
+        2: {
+          x: getPosition(gameState.bots[2].x * fieldWidthUnit + fieldCenterX, pieceWidth),
+          y: getPosition(-1 * gameState.bots[2].y * fieldHeightUnit + fieldCenterY, pieceHeight),
+        },
+      });
+    }
+  }, [isDragging, gameState]);
 
   function handleDragStart(e, botIndex) {
+    console.log("handleDragStart");
+    setIsDragging(true);
+
+    // TODO: use this data, to set a ghost element that will show where the item was dragged from
     console.log({ x: e.target.offsetLeft, y: e.target.offsetTop, botIndex });
 
     // Prevent default dragging
@@ -87,6 +107,7 @@ const GameField = ({ gameState, gameConfig }) => {
   }
 
   function handleDragStop(e, botIndex) {
+    console.log("handleDragStop");
     const x = parseFloat(((e.x - bounds.left - fieldCenterX) / fieldWidthUnit).toFixed(2));
     const y = parseFloat(((e.y - bounds.top - fieldCenterY) / fieldHeightUnit).toFixed(2));
     const messageObject = {
@@ -97,7 +118,7 @@ const GameField = ({ gameState, gameConfig }) => {
     };
     sendMessage(messageObject);
 
-    // setIsDragging(false);
+    setIsDragging(false);
   }
 
   function Ball() {
@@ -108,6 +129,7 @@ const GameField = ({ gameState, gameConfig }) => {
         grid={[1, 1]}
         onStart={handleDragStart}
         onStop={(e) => handleDragStop(e, 0)}
+        // disabled={!enableDragging}
       >
         <img
           className="draggable"
@@ -118,9 +140,10 @@ const GameField = ({ gameState, gameConfig }) => {
           style={{
             position: "absolute",
             zIndex: 1,
-            left: ballX,
-            top: ballY,
+            left: positions[0].x,
+            top: positions[0].y,
           }}
+          // draggable={enableDragging}
         />
       </Draggable>
     );
@@ -134,6 +157,7 @@ const GameField = ({ gameState, gameConfig }) => {
         grid={[10, 10]}
         onStart={handleDragStart}
         onStop={(e) => handleDragStop(e, botIndex)}
+        // disabled={!enableDragging}
       >
         <Box
           className="draggable"
@@ -153,7 +177,9 @@ const GameField = ({ gameState, gameConfig }) => {
     <div style={{
       display: "grid",
       gridTemplateColumns: "auto 1fr auto",
-      margin: 30,
+      padding: 30,
+      flex: 1,
+      width: "100%",
     }}
     >
       <Goal name="blue goal" color={blue[400]} />
@@ -167,8 +193,18 @@ const GameField = ({ gameState, gameConfig }) => {
         ref={containerRef}
       >
         <Ball />
-        <PlayerPiece botIndex={0} left={bot1X} top={bot1Y} backgroundColor={red[400]} />
-        <PlayerPiece botIndex={1} left={bot2X} top={bot2Y} backgroundColor={blue[400]} />
+        <PlayerPiece
+          botIndex={0}
+          left={positions[1].x}
+          top={positions[1].y}
+          backgroundColor={red[400]}
+        />
+        <PlayerPiece
+          botIndex={1}
+          left={positions[2].y}
+          top={positions[2].y}
+          backgroundColor={blue[400]}
+        />
         <FieldGrid />
       </div>
       <Goal name="red goal" color={red[400]} />

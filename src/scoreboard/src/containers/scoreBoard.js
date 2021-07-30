@@ -54,9 +54,8 @@ const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
 );
 
 const OurContainer = styled(Container)`
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255,255,255,0.25);
   max-width: 600px;
-  padding: 20px 20px;
   text-align: center;
   border-radius: 10px;
 `;

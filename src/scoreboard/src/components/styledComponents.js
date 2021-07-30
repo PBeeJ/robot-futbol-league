@@ -5,18 +5,26 @@ export const H1 = styled(Typography).attrs(() => ({
   variant: "h1",
 }))`
   // add additional styling here
+  font-family: SoccerLeague !important;
+  font-size: 3em !important;
+  transform: translateY(4px); // HACK: fix vertical alignment
 `;
 
 export const H2 = styled(Typography).attrs(() => ({
   variant: "h2",
 }))`
   // add additional styling here
+  font-family: SoccerLeague !important;
+  font-size: 2em !important;
+  transform: translateY(4px); // HACK: fix vertical alignment
 `;
 
 export const H3 = styled(Typography).attrs(() => ({
   variant: "h3",
 }))`
+  font-family: SoccerLeague !important;
   text-transform: none;
+  transform: translateY(4px); // HACK: fix vertical alignment
 `;
 
 export const H4 = styled(Typography).attrs(() => ({
@@ -26,6 +34,7 @@ export const H4 = styled(Typography).attrs(() => ({
   font-family: SoccerLeague !important;
   font-size: 3em !important;
   margin-top: 20px !important;
+  transform: translateY(4px); // HACK: fix vertical alignment
 `;
 
 export const H5 = styled(Typography).attrs(() => ({

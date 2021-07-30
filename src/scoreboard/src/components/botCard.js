@@ -16,11 +16,11 @@ export default function BotCard({ bot, onClick }) {
       <FlexRow style={{ textAlign: "center" }}>
         <FlexCell>
           <P>
-            ({bot.x},{bot.y})
+            ({bot.x.toFixed(1)},{bot.y.toFixed(1)})
           </P>
         </FlexCell>
         <FlexCell>
-          <P>{bot.heading}°</P>
+          &nbsp;<P>{bot.heading}°</P>
         </FlexCell>
       </FlexRow>
     </OurContainer>
@@ -29,6 +29,7 @@ export default function BotCard({ bot, onClick }) {
 
 const OurContainer = styled(Card)`
   cursor: pointer;
+  color: rgba(255,255,255,0.95);
   background-color: ${(props) =>
     props.$botMode === 0
       ? "rgba(0, 128, 28, .5)"
