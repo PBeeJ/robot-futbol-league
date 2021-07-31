@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
 import { connect } from "react-redux";
 
@@ -6,51 +6,31 @@ import { blue, red, purple } from "@material-ui/core/colors";
 
 import { useLocation } from "react-router";
 import ScoreBoard from "./scoreBoard";
-import GameField from "./gameField";
+import Joystick from "../components/joystick";
 import { H1 } from "../components/styledComponents";
 import VideoPlayer from "../components/VideoPlayer";
 
 const ManualControls = ({ videoState }) => {
   const { search } = useLocation();
-  const [xPox, setXPox] = useState(false);
 
   const botIndex = parseInt(search.replace("?bot=", ""), 10);
 
   const isBluePlayer = botIndex === 1;
 
-  function handleOrientation(event) {
-    setXPox(event.alpha);
-    // updateFieldIfNotNull('Orientation_a', event.alpha);
-    // updateFieldIfNotNull('Orientation_b', event.beta);
-    // updateFieldIfNotNull('Orientation_g', event.gamma);
-  }
-
-  useEffect(() => {
-    // Check for permissions
-    if (
-      window.DeviceMotionEvent
-      && typeof window.DeviceMotionEvent.requestPermission === "function"
-    ) {
-      window.DeviceMotionEvent.requestPermission();
-
-      window.addEventListener("deviceorientation", handleOrientation);
-    }
-  }, []);
-
-  const suffix = xPox ? ` player (${xPox})` : " player";
-
   return (
     <div style={{
       backgroundColor: isBluePlayer ? blue[100] : red[100],
-       height: "100%",
+      height: "100%",
       display: "grid",
       gridTemplateRows: "auto auto 1fr",
-      }}
+      position: "relative",
+    }}
     >
-      <Title>{`${isBluePlayer ? "Blue" : "Red"}${suffix}` }</Title>
+      <Title>{`${isBluePlayer ? "Blue" : "Red"} player` }</Title>
       <ScoreBoard />
-      <GameField enableDragging={false} botIndex={botIndex} />
+      <Joystick botIndex={botIndex} />
       <VideoPlayer video={videoState.video} isFullScreen />
+      <div style={{ position: "absolute", top: 0, right: 0, width: "200px" }} />
     </div>
 );
  };
