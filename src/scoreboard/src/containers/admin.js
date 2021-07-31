@@ -8,18 +8,21 @@ import ScoreBoard from "./scoreBoard";
 import GameField from "./gameField";
 
 import BotCards from "../components/botCards";
+import VideoControls from "../components/VideoControls";
+import VideoPlayer from "../components/VideoPlayer";
 import { H1, P } from "../components/styledComponents";
 
-const Admin = ({ gameState }) => (
+const Admin = ({ gameState, videoState }) => (
   <Grid style={{
-    display: "flex",
-    flexDirection: "column",
-    gridTemplateRows: "auto 1fr 1fr 1fr 5fr",
-    justifyItems: "center",
-    alignItems: "center",
-    backgroundColor: brown[700],
-    padding: "0 20px",
-}}
+      display: "flex",
+      flexDirection: "column",
+      gridTemplateRows: "auto 1fr 1fr 1fr 5fr",
+      justifyItems: "center",
+      alignItems: "center",
+      backgroundColor: brown[700],
+      padding: "0 20px",
+      position: "relative",
+    }}
   >
     <div style={{ display: "grid", justifyItems: "center", alignItems: "center" }}>
       <H1 style={{ color: yellow[700], marginTop: 20 }}>Admin Page</H1>
@@ -31,13 +34,18 @@ const Admin = ({ gameState }) => (
     </div>
     <GameControls />
     <ScoreBoard />
-    <BotCards bots={gameState.bots} />
+    <Grid style={{ display: "grid", gridTemplateColumns: "auto auto" }}>
+      <BotCards bots={gameState.bots} />
+      <VideoControls />
+      <VideoPlayer video={videoState.video} />
+    </Grid>
     <GameField showControls />
   </Grid>
-);
+  );
 
-const mapStateToProps = ({ gameState }) => ({
+const mapStateToProps = ({ gameState, videoState }) => ({
   gameState,
+  videoState,
 });
 
 export default connect(mapStateToProps /* , mapDispatchToProps */)(Admin);

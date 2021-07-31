@@ -83,13 +83,14 @@ function PlayerPiece({
   return (
     <Box
       width={pieceWidth || 0}
-      height={pieceHeight || 0}
+      height={(botIndex === 0 ? pieceWidth : pieceHeight) || 0}
       style={{
           position: "absolute",
           zIndex: 1,
           backgroundColor: getPlayerColor(botIndex),
           left: positions[botIndex].x,
           top: positions[botIndex].y,
+          borderRadius: (botIndex === 0 ? pieceWidth : 0) || 0,
         }}
     />
   );

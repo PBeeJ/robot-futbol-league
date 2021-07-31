@@ -98,3 +98,10 @@ export function increaseScore(botIndex) {
 export function decreaseScore(botIndex) {
   console.log(`can we please decrease the score for player ${botIndex}`);
 }
+
+export function playVideo(video) {
+  return sendMessage({
+    type: "playVideo",
+    data: { video },
+  });
+}

@@ -8,12 +8,14 @@ import { green, purple } from "@material-ui/core/colors";
 import ScoreBoard from "./scoreBoard";
 import GameField from "./gameField";
 import { H1 } from "../components/styledComponents";
+import VideoPlayer from "../components/VideoPlayer";
 
-const Home = () => (
+const Home = ({ videoState }) => (
   <OurContainer>
     <Title>Robot Futbol League</Title>
     <ScoreBoard />
     <GameField enableDragging={false} />
+    <VideoPlayer video={videoState.video} isFullScreen />
   </OurContainer>
 );
 
@@ -34,8 +36,9 @@ const Title = styled(H1)`
   -webkit-text-stroke: 2px ${purple[400]};
 `;
 
-const mapStateToProps = ({ gameState }) => ({
+const mapStateToProps = ({ gameState, videoState }) => ({
   gameState,
+  videoState,
 });
 
 export default connect(mapStateToProps /* , mapDispatchToProps */)(Home);
