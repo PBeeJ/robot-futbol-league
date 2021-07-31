@@ -23,8 +23,9 @@ export const VALID_BOT_INDEXES = Object.values(BOT_INDEXES);
 export const BOT_MODES = {
   auto: 0,
   manual: 1,
+  manualThrottle: 2,
 };
 
-export const BOT_MODE_NAMES = ["Autonomous", "Manual"];
+export const BOT_MODE_NAMES = ["Autonomous", "Manual", "Manual Throttle"];
 
 export const VALID_BOT_MODES = Object.values(BOT_MODES);
