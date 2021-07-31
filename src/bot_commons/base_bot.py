@@ -11,13 +11,13 @@ import websockets
 import traceback
 
 from commons import enums
-from bot_commons import compass, GameState, movement
+from bot_commons import compass, Game_State, movement
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
 
 # Globals shared by the two async methods
-gameState: GameState.GameState = None
+gameState: Game_State.GameState = None
 # localBotState: GameState.LocalBotState = None
 headingOffset = None
 fullSpeed = None
@@ -70,7 +70,7 @@ async def state_update_task():
                         ts = time.time()
                         heading = compass.get_heading()
                         if not gameState:
-                            gameState = GameState.GameState(
+                            gameState = Game_State.GameState(
                                 message_data, ts, heading)
                         else:
                             gameState.updateFromMessage(
@@ -220,40 +220,17 @@ async def rotateTo(dest):
         # print(f"heading curr dest diff: {heading} {curr} {dest} {ad}")
 
 
-async def moveTowards(x0, y0, h0, x1, y1):
-
-    # print(f"==== NEW MOVETOWARDS ===== moveTowards({x0}, {y0}, {h0}, {x1}, {y1})")
-    print(f"==+== NEW MOVETOWARDS =====")
-
-    routeHeading = safeAtan(x1 - x0, y1 - y0)
-    # print(f"routeHeading = {routeHeading} = safeAtan({x1} - {x0}, {y1} - {y0})")
-
-    d = dist(x1 - x0, y1 - y0)
-    print(f"Distance = {d}")
-
-    adiff = angleDiff(routeHeading, h0)
-    print(f"Angle Diff = {adiff} = angleDiff({routeHeading}, {h0})")
-
-    await rotateTo(routeHeading)
-
-    lcor, rcor = 0, 0  # Left & right throttle corrections, used to correct heading as we move
-    # TODO dynamic correction
-    # if abs(adiff) > 5:
-    #     if(adiff > 0):
-    #         rcor = .1
-    #     else:
-    #         lcor = .1
-    # print(f"Distance for mag factor")
-    # mag = min(1, d * .5)
-    # print(f"movement.move({mag} - {lcor}, {mag} - {rcor}, True)")
-    mag = 1
-    runtime = d / fullSpeed * 0.3
-    print(f"Run For {runtime}")
-    movement.move(mag - lcor, mag - rcor, True)
-    # print(f"sleep time = {d} / {fullSpeed} * 0.9 = {d / fullSpeed * 0.9}")
-    await asyncio.sleep(runtime)
-    # TODO Improve this by getting better at projecting where we are
+async def rotateDistance(diff):
+    global rotationSpeed
     movement.stop_moving()
+    start = compass.get_heading()
+    ad = diff
+    while abs(ad) > 5:
+        movement.rotate(min(1, abs(ad) * .5), ad < 0)
+        await asyncio.sleep(ad / rotationSpeed)
+        movement.stop_moving()
+        curr = compass.get_heading()
+        ad =  angleDiff(start + diff, curr)
 
 
 async def moveToManual(localBot, x1, y1, h1):
@@ -268,12 +245,41 @@ async def moveToManual(localBot, x1, y1, h1):
     print(f"routeHeading: {routeHeading}")
     await rotateTo(routeHeading)
     while dist(x1 - startTuple[0], y1 - startTuple[1]) > 2:
-        latestHeading = safeAtan(
-            tupleDequeue[1][0] - startTuple[0], tupleDequeue[1][1] - startTuple[1])
-        await moveTowards(startTuple[0], startTuple[1], latestHeading, x1, y1)
-        ts = time.time()
+        x0 = startTuple[0]
+        y0 = startTuple[1]
+        stepDist = dist(tupleDequeue[1][0] - x0, tupleDequeue[1][1] - y0)
+        d = dist(x1 - x0, y1 - y0)
+        print(f"Distance = {d}, stepDistance = {stepDist}")
+
+        latestHeading = safeAtan(x0 - tupleDequeue[1][0], y0 - tupleDequeue[1][1])
+        if(stepDist > 2):
+            # print(f"==== NEW MOVETOWARDS ===== moveTowards({x0}, {y0}, {h0}, {x1}, {y1})")
+            print(f"==== NEW MOVETOWARDS =====")
+
+            routeHeading = safeAtan(x1 - x0, y1 - y0)
+            # print(f"routeHeading = {routeHeading} = safeAtan({x1} - {x0}, {y1} - {y0})")
+
+
+            adiff = angleDiff(routeHeading, latestHeading)
+            print(f"Angle Diff = {adiff} = angleDiff({routeHeading}, {h0})")
+
+            await rotateDistance(adiff)
+
+        mag = 1
+        runtime = d / fullSpeed * 0.3
+        print(f"Run For {runtime}")
+        movement.move(mag, mag, True)
+        # print(f"sleep time = {d} / {fullSpeed} * 0.9 = {d / fullSpeed * 0.9}")
+        await asyncio.sleep(runtime)
+        # TODO Improve this by getting better at projecting where we are
+        movement.stop_moving()
+
         tupleDequeue = await localBot.getLocationAfter(time.time())
         startTuple = tupleDequeue[0]
+
+        x1 = gameState.getLocalBot().manualPosition["x"]
+        y1 = gameState.getLocalBot().manualPosition["y"]
+
     await rotateTo(angleDiff(h1, headingOffset))
 
 
@@ -298,10 +304,10 @@ async def movement_task():
                 movement.stop_moving()
                 continue
             # We calibrate if we need to
-            if not headingOffset:
-                print("Uncalibrated.  Calibrating now.")
-                await calibrate(gameState.getLocalBot())
-                continue
+            # if not headingOffset:
+            #     print("Uncalibrated.  Calibrating now.")
+            #     await calibrate(gameState.getLocalBot())
+            #     continue
             # if gameState.gameStatus == enums.GAME_STATES.return_home:
             print("Heading home.")
             await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"], gameState.getLocalBot().manualPosition["heading"])
