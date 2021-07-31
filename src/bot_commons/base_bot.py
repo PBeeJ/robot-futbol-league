@@ -70,7 +70,7 @@ async def state_update_task():
                         ts = time.time()
                         heading = compass.get_heading()
                         if not gameState:
-                            gameState = GameState.GameState(
+                            gameState = Game_State.GameState(
                                 message_data, ts, heading)
                         else:
                             gameState.updateFromMessage(
