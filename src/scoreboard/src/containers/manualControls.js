@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { connect } from "react-redux";
 
@@ -12,10 +12,32 @@ import VideoPlayer from "../components/VideoPlayer";
 
 const ManualControls = ({ videoState }) => {
   const { search } = useLocation();
+  const [xPox, setXPox] = useState(false);
 
   const botIndex = parseInt(search.replace("?bot=", ""), 10);
 
-  const isBluePlayer = !botIndex;
+  const isBluePlayer = botIndex === 1;
+
+  function handleOrientation(event) {
+    setXPox(event.alpha);
+    // updateFieldIfNotNull('Orientation_a', event.alpha);
+    // updateFieldIfNotNull('Orientation_b', event.beta);
+    // updateFieldIfNotNull('Orientation_g', event.gamma);
+  }
+
+  useEffect(() => {
+    // Check for permissions
+    if (
+      window.DeviceMotionEvent
+      && typeof window.DeviceMotionEvent.requestPermission === "function"
+    ) {
+      window.DeviceMotionEvent.requestPermission();
+
+      window.addEventListener("deviceorientation", handleOrientation);
+    }
+  }, []);
+
+  const suffix = xPox ? ` player (${xPox})` : " player";
 
   return (
     <div style={{
@@ -25,7 +47,7 @@ const ManualControls = ({ videoState }) => {
       gridTemplateRows: "auto auto 1fr",
       }}
     >
-      <Title>{isBluePlayer ? "Blue player" : "Red player" }</Title>
+      <Title>{`${isBluePlayer ? "Blue" : "Red"}${suffix}` }</Title>
       <ScoreBoard />
       <GameField enableDragging={false} botIndex={botIndex} />
       <VideoPlayer video={videoState.video} isFullScreen />

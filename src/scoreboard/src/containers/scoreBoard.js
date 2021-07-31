@@ -42,7 +42,7 @@ const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
       gridGap: 20,
     }}
     >
-      <Score botIndex={0} name="Blue" score={scores[0]} color={blue[400]} />
+      <Score botIndex={1} name="Blue" score={scores[0]} color={blue[400]} />
       <FlexCell>
         <FlexColumn>
           <H3>
@@ -51,7 +51,7 @@ const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
           <H4 style={{ marginTop: 10 }}>{GAME_STATE_LABELS[gameStateState]}</H4>
         </FlexColumn>
       </FlexCell>
-      <Score botIndex={1} name="Red" score={scores[1]} color={red[400]} />
+      <Score botIndex={2} name="Red" score={scores[1]} color={red[400]} />
     </div>
   </OurContainer>
 );

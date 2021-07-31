@@ -194,7 +194,7 @@ const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
           bounds={bounds}
         />
         <FieldGrid
-          botIndex={botIndex}
+          botIndex={showControls ? 0 : botIndex}
           fieldCenterX={fieldCenterX}
           fieldCenterY={fieldCenterY}
           fieldWidthUnit={fieldWidthUnit}
