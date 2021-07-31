@@ -194,6 +194,29 @@ async def handleManualPositionMessage(websocket, data):
     DataStore.GAME_STATE["isDirty"] = True
 
 
+async def handleManualThrottleMessage(websocket, data):
+    if not validate_admin(websocket, "manual throttle update"):
+        return
+
+    botIndex = data["botIndex"]
+    known_bot = get_known_bot(websocket, data)
+    if not known_bot:
+        print(
+            f"got manual throttle message for unknown bot. botIndex={botIndex}")
+        return
+
+    gameState = DataStore.GAME_STATE["gameStatus"]["state"]
+    if gameState != enums.GAME_STATES.game_on.value:
+        print(
+            f"ignoring manual throttle message for {botIndex}.  The game status {gameState} is not on.")
+        return
+
+    throttle = known_bot["manualThrottle"]
+    throttle["left"] = data["left"]
+    throttle["right"] = data["right"]
+    DataStore.GAME_STATE["isDirty"] = True
+
+
 async def handleBotModeMessage(websocket, data):
     await handleBotModesMessage(websocket, [data])
 
@@ -269,6 +292,7 @@ async def handleGameResumeMessage(websocket):
     if gameState != enums.GAME_STATES.game_over.value:
         DataStore.resumeGame()
 
+
 async def handlePlayVideoMessage(websocket, data):
     if not validate_admin(websocket, 'game resume'):
         return
@@ -306,6 +330,9 @@ async def handleMessage(websocket, path):
             # {type: "manualPosition", data {botIndex: 0, x: 0, y: 0, heading: 0}}
             elif messageType == "manualPosition":
                 await handleManualPositionMessage(websocket, messageData)
+            # {type: "manualThrottle", data {botIndex: 0, left: 0, right: 0}}
+            elif messageType == "manualThrottle":
+                await handleManualThrottleMessage(websocket, messageData)
             # {type: "botMode", data: {botindex: 0, mode: 0}}
             elif messageType == "botMode":
                 await handleBotModeMessage(websocket, messageData)

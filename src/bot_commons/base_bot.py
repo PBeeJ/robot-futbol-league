@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from enum import auto
+import enum
 import sys
 import time
 import math
@@ -11,7 +12,6 @@ import traceback
 
 from commons import enums
 from bot_commons import compass, GameState, movement
-
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
@@ -33,6 +33,8 @@ controller_socket = None
 movement_callback = None
 
 GAME_CONFIG = None
+WHO_AM_I = None
+
 
 def start(passed_movement_callback):
     global movement_callback
@@ -40,6 +42,8 @@ def start(passed_movement_callback):
     asyncio.run(basic_bot())
 
 # Magic mystery code.  TODO, learn how this works.
+
+
 async def basic_bot():
     recvTask = asyncio.create_task(state_update_task())
     movementTask = asyncio.create_task(movement_task())
@@ -66,16 +70,19 @@ async def state_update_task():
                         ts = time.time()
                         heading = compass.get_heading()
                         if not gameState:
-                            gameState = GameState.GameState(message_data, ts, heading)
+                            gameState = GameState.GameState(
+                                message_data, ts, heading)
                         else:
-                            gameState.updateFromMessage(message_data, ts, heading)
+                            gameState.updateFromMessage(
+                                message_data, ts, heading)
                             # print(f"localBot: {gameState.getLocalBot().toString()}")
                     elif message_type == "config":
                         GAME_CONFIG = message_data
                         # print(f"CONFIG: {message_data}")
                     elif message_type == "iseeu":
                         if gameState is not None:
-                            gameState.updateMyName(message_data["knownBot"]["name"])
+                            gameState.updateMyName(
+                                message_data["knownBot"]["name"])
                     await asyncio.sleep(.05)
         except:
             traceback.print_exc()
@@ -83,6 +90,7 @@ async def state_update_task():
         controller_socket = None
         print('socket disconnected.  Reconnecting in 5 sec...')
         await asyncio.sleep(5)
+
 
 async def send_mode(mode):
     global controller_socket
@@ -99,18 +107,19 @@ async def send_mode(mode):
             try:
                 await controller_socket.send(message)
                 return
-            except: # catch *all* exceptions, print them, get over it
+            except:  # catch *all* exceptions, print them, get over it
                 traceback.print_exc()
         else:
             await asyncio.sleep(.25)
 
 # TODO rotate less and go backwards if that's an option
+
+
 def angleDiff(dest, curr):
     # print(f"dest - curr {dest} - {curr}")
-    rotateAmount = (dest - curr)%360
+    rotateAmount = (dest - curr) % 360
     # print(f"rotateAmount {rotateAmount}")
     return rotateAmount - 360 if rotateAmount > 180 else rotateAmount
-
 
 
 def safeAtan(dx, dy):
@@ -129,6 +138,7 @@ def safeAtan(dx, dy):
 
 def dist(dx, dy):
     return math.sqrt(dx * dx + dy * dy)
+
 
 async def calibrate(localBot):
     global headingOffset
@@ -192,7 +202,6 @@ Found heading offset: {headingOffset} and forward speed: {fullSpeed}""")
     # movement.stop_moving()
 
 
-
 async def rotateTo(dest):
     global headingOffset
     global rotationSpeed
@@ -207,7 +216,7 @@ async def rotateTo(dest):
         movement.stop_moving()
         heading = compass.get_heading()
         curr = heading + headingOffset
-        ad =  angleDiff(dest, curr)
+        ad = angleDiff(dest, curr)
         # print(f"heading curr dest diff: {heading} {curr} {dest} {ad}")
 
 
@@ -219,8 +228,6 @@ async def moveTowards(x0, y0, h0, x1, y1):
     routeHeading = safeAtan(x1 - x0, y1 - y0)
     # print(f"routeHeading = {routeHeading} = safeAtan({x1} - {x0}, {y1} - {y0})")
 
-
-
     d = dist(x1 - x0, y1 - y0)
     print(f"Distance = {d}")
 
@@ -229,7 +236,7 @@ async def moveTowards(x0, y0, h0, x1, y1):
 
     await rotateTo(routeHeading)
 
-    lcor, rcor = 0, 0 # Left & right throttle corrections, used to correct heading as we move
+    lcor, rcor = 0, 0  # Left & right throttle corrections, used to correct heading as we move
     # TODO dynamic correction
     # if abs(adiff) > 5:
     #     if(adiff > 0):
@@ -251,7 +258,8 @@ async def moveTowards(x0, y0, h0, x1, y1):
 
 async def moveToManual(localBot, x1, y1, h1):
     global headingOffset
-    print(f"Running moveToManual with headingOffset: {headingOffset} and args {localBot.toString()} {x1} {y1} {h1}")
+    print(
+        f"Running moveToManual with headingOffset: {headingOffset} and args {localBot.toString()} {x1} {y1} {h1}")
     movement.stop_moving()
     tupleDequeue = await localBot.getLocationAfter(time.time())
     startTuple = tupleDequeue[0]
@@ -260,13 +268,13 @@ async def moveToManual(localBot, x1, y1, h1):
     print(f"routeHeading: {routeHeading}")
     await rotateTo(routeHeading)
     while dist(x1 - startTuple[0], y1 - startTuple[1]) > 2:
-        latestHeading = safeAtan(tupleDequeue[1][0] - startTuple[0], tupleDequeue[1][1] - startTuple[1])
+        latestHeading = safeAtan(
+            tupleDequeue[1][0] - startTuple[0], tupleDequeue[1][1] - startTuple[1])
         await moveTowards(startTuple[0], startTuple[1], latestHeading, x1, y1)
         ts = time.time()
         tupleDequeue = await localBot.getLocationAfter(time.time())
         startTuple = tupleDequeue[0]
     await rotateTo(angleDiff(h1, headingOffset))
-
 
 
 async def movement_task():
@@ -275,10 +283,14 @@ async def movement_task():
     global gameState
 
     while True:
-        await asyncio.sleep(1)
+        await asyncio.sleep(.05)
+        knownBot = WHO_AM_I["knownBot"]
+        botMode = knownBot["mode"]
+
         try:
             if not gameState or not gameState.getLocalBot():
-                print("No Game State yet and/or Local Bot, maybe game controller is down?  Waiting a bit")
+                print(
+                    "No Game State yet and/or Local Bot, maybe game controller is down?  Waiting a bit")
                 await asyncio.sleep(1)
                 continue
             if gameState.gameStatus == enums.GAME_STATES.game_paused:
@@ -293,6 +305,18 @@ async def movement_task():
             # if gameState.gameStatus == enums.GAME_STATES.return_home:
             print("Heading home.")
             await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"], gameState.getLocalBot().manualPosition["heading"])
+            if gameState.gameStatus == enums.GAME_STATES.game_on.value and botMode == enums.BOT_MODES.manualThrottle.value:
+                manualThrottle = knownBot["manualThrottle"]
+                movement.move(manualThrottle["left"],
+                              manualThrottle["right"], True)
+                continue
+            # if not headingOffset:
+            #     print("Uncalibrated.  Calibrating now.")
+            #     await calibrate(gameState.getLocalBot())
+            #     continue
+            if gameState.gameStatus == enums.GAME_STATES.return_home.value:
+                print("Heading home.")
+                await moveManual(gameState.getLocalBot(), localBot.manualPostion["x"], localBot.manualPostion["y"])
             # print("No action take in movement_task")
             # gameStatus = gameState.gameStatus
             # if should_call_movement_callback(botMode, gameStatus):
@@ -301,19 +325,17 @@ async def movement_task():
             print('Interrupted.  Exiting')
             movement.stop_moving()
             sys.exit(1)
-        except: # catch *all* exceptions, print them, get over it
+        except:  # catch *all* exceptions, print them, get over it
             traceback.print_exc()
             movement.stop_moving()
             sys.exit(1)
 
 
-
-
 def should_call_movement_callback(botMode, gameStatus):
     # print(f'movement_callback: {movement_callback}, botMode {botMode} and gameStatus {gameStatus}')
     shouldcall = (movement_callback and
-        botMode == enums.BOT_MODES.auto.value and
-        gameStatus.value == enums.GAME_STATES.game_on.value)
+                  botMode == enums.BOT_MODES.auto.value and
+                  gameStatus.value == enums.GAME_STATES.game_on.value)
 
     # print(f'evaluates to:{shouldcall}')
     return shouldcall
