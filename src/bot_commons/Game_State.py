@@ -1,5 +1,4 @@
 from commons import enums
-from bot_commons import dumper
 from collections import deque
 import asyncio
 import time
