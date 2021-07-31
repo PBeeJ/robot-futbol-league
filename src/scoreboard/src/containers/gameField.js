@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import useMeasure from "react-use-measure";
@@ -5,7 +7,7 @@ import useMeasure from "react-use-measure";
 import { green, red, blue } from "@material-ui/core/colors";
 import { Box, Button } from "@material-ui/core";
 
-import { increaseScore, decreaseScore } from "../websockets";
+import { increaseScore, decreaseScore, sendMessage } from "../websockets";
 
 const gridLines = 20;
 const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr";
@@ -50,12 +52,30 @@ function Goal({ botIndex, showControls }) {
 }
 
 function FieldCell() {
-  return <div style={{ outline: "1px solid rgba(255,255,255,0.5)" }} />;
+  return <div style={{ outline: "1px solid rgba(255,255,255,0.5)", pointerEvents: "none" }} />;
 }
 
-function FieldGrid() {
+const handleFieldClick = (
+  e, botIndex, fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+) => {
+  const rect = e.target.getBoundingClientRect();
+  const x = parseFloat(((e.clientX - rect.x - fieldCenterX) / fieldWidthUnit).toFixed(2));
+  const y = parseFloat(((e.clientY - rect.y - fieldCenterY) / fieldHeightUnit).toFixed(2));
+  const messageObject = {
+    type: "manualPosition",
+    data: { botIndex, x, y, heading: null },
+  };
+  sendMessage(messageObject);
+};
+
+function FieldGrid({ botIndex, fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit }) {
   return (
-    <div style={{ display: "grid", flex: 1, gridTemplateColumns }}>
+    <div
+      style={{ display: "grid", flex: 1, gridTemplateColumns }}
+      onClick={(e) => handleFieldClick(
+        e, botIndex, fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
+      )}
+    >
       {[...Array(gridLines).keys()].map((item) => <FieldCell key={item} />)}
     </div>
   );
@@ -96,7 +116,10 @@ function PlayerPiece({
   );
 }
 
-const GameField = ({ gameState, gameConfig, showControls }) => {
+// NOTE: if this component contains a botIndex, then it acts as the manual
+// controller for that bot
+
+const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
   const [containerRef, bounds] = useMeasure();
   const [positions, setPositions] = useState(
     { 0: { x: 0, y: 0 }, 1: { x: 0, y: 0 }, 2: { x: 0, y: 0 } },
@@ -170,7 +193,13 @@ const GameField = ({ gameState, gameConfig, showControls }) => {
           pieceHeight={pieceHeight}
           bounds={bounds}
         />
-        <FieldGrid />
+        <FieldGrid
+          botIndex={botIndex}
+          fieldCenterX={fieldCenterX}
+          fieldCenterY={fieldCenterY}
+          fieldWidthUnit={fieldWidthUnit}
+          fieldHeightUnit={fieldHeightUnit}
+        />
       </div>
       <Goal botIndex={1} showControls={showControls} />
     </div>

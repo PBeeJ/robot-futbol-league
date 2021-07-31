@@ -4,6 +4,7 @@ import { Container } from "@material-ui/core";
 import styled from "styled-components";
 import { red, blue } from "@material-ui/core/colors";
 
+import { Link } from "react-router-dom";
 import { GAME_STATE_LABELS } from "../selectors/enums";
 import {
   gameStateStateSelector,
@@ -20,13 +21,15 @@ import {
 } from "../components/styledComponents";
 // import { SevenSegmentNumber } from '../components/sevenSegmentNumber';
 
-function Score({ name, score, color }) {
+function Score({ botIndex, name, score, color }) {
   return (
     <FlexCell>
-      <FlexColumn style={{ backgroundColor: color, borderRadius: 2, padding: 5 }}>
-        <H3 style={{ color: "white" }}>{name}</H3>
-        <H4 style={{ color: "white" }}>{score}</H4>
-      </FlexColumn>
+      <Link to={`/play?bot=${botIndex}`} style={{ textDecoration: "none" }}>
+        <FlexColumn style={{ backgroundColor: color, borderRadius: 2, padding: 5 }}>
+          <H3 style={{ color: "white" }}>{name}</H3>
+          <H4 style={{ color: "white" }}>{score}</H4>
+        </FlexColumn>
+      </Link>
     </FlexCell>
   );
 }
@@ -39,7 +42,7 @@ const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
       gridGap: 20,
     }}
     >
-      <Score name="Blue" score={scores[0]} color={blue[400]} />
+      <Score botIndex={0} name="Blue" score={scores[0]} color={blue[400]} />
       <FlexCell>
         <FlexColumn>
           <H3>
@@ -48,7 +51,7 @@ const ScoreBoard = ({ gameStateState, secondsRemaining, scores }) => (
           <H4 style={{ marginTop: 10 }}>{GAME_STATE_LABELS[gameStateState]}</H4>
         </FlexColumn>
       </FlexCell>
-      <Score name="Red" score={scores[1]} color={red[400]} />
+      <Score botIndex={1} name="Red" score={scores[1]} color={red[400]} />
     </div>
   </OurContainer>
 );
