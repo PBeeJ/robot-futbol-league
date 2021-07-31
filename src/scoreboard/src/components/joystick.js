@@ -5,7 +5,7 @@ import { red } from "@material-ui/core/colors";
 
 import { sendManualThrottle } from "../websockets";
 
-export default function Joystick({botIndex}) {
+export default function Joystick({ botIndex }) {
   const [relativeX, setRelativeX] = useState(0);
   const [relativeY, setRelativeY] = useState(0);
   const [mouseIsDown, setMouseIsDown] = useState(false);
@@ -36,8 +36,8 @@ export default function Joystick({botIndex}) {
     setRelativeX(offsetLeft);
     setRelativeY(offsetTop);
 
-    const rawThrottle = 0.6 * (offsetTop / 100);
-    const throttleLeft
+    const rawThrottle = 0.3 * (offsetTop / 100) + 0.6;
+
     sendManualThrottle(botIndex, rawThrottle, rawThrottle);
   };
 
