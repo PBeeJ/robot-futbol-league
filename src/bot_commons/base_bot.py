@@ -11,13 +11,13 @@ import websockets
 import traceback
 
 from commons import enums
-from bot_commons import compass, GameState, movement
+from bot_commons import compass, Game_State, movement
 
 
 GAME_CONTROLLER_URI = "ws://192.168.1.2:6789"
 
 # Globals shared by the two async methods
-gameState: GameState.GameState = None
+gameState: Game_State.GameState = None
 # localBotState: GameState.LocalBotState = None
 headingOffset = None
 fullSpeed = None
