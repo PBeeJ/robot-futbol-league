@@ -11,6 +11,8 @@ import { BOT_MODES, BOT_MODE_NAMES } from "../selectors/enums";
 import { sendBotMode, sendManualPosition } from "../websockets";
 import { Label } from "./styledComponents";
 
+import Joystick from "./joystick";
+
 export default function BotModeControl({ bot }) {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
@@ -28,60 +30,72 @@ export default function BotModeControl({ bot }) {
 
   return (
     <Grid style={{ display: "grid", gridGap: 20 }}>
-      <OurContainer botMode={bot.mode}>
-        <Label>BotMode</Label>
-        <RadioGroup
-          aria-label="bot mode"
-          name="botMode1"
-          value={bot.mode}
-          onChange={handleBotModeChange}
-        >
-          <FormControlLabel
-            value={BOT_MODES.manual}
-            control={<Radio />}
-            label={BOT_MODE_NAMES[BOT_MODES.manual]}
+      <Grid item>
+        <OurContainer botMode={bot.mode}>
+          <Label>BotMode</Label>
+          <RadioGroup
+            aria-label="bot mode"
+            name="botMode1"
+            value={bot.mode}
+            onChange={handleBotModeChange}
+          >
+            <FormControlLabel
+              value={BOT_MODES.manual}
+              control={<Radio />}
+              label={BOT_MODE_NAMES[BOT_MODES.manual]}
+            />
+            <FormControlLabel
+              value={BOT_MODES.auto}
+              control={<Radio />}
+              label={BOT_MODE_NAMES[BOT_MODES.auto]}
+            />
+            <FormControlLabel
+              value={BOT_MODES.manualThrottle}
+              control={<Radio />}
+              label={BOT_MODE_NAMES[BOT_MODES.manualThrottle]}
+            />
+          </RadioGroup>
+        </OurContainer>
+      </Grid>
+      <Grid item>
+        <OurContainer botMode={bot.mode}>
+          <Label>X position</Label>
+          <Slider
+            style={{ marginTop: 10 }}
+            label="x postition"
+            value={x}
+            onChange={(e, value) => setX(value)}
+            step={0.1}
+            valueLabelDisplay="on"
+            max={10}
+            min={-10}
           />
-          <FormControlLabel
-            value={BOT_MODES.auto}
-            control={<Radio />}
-            label={BOT_MODE_NAMES[BOT_MODES.auto]}
+          <Label>Y position</Label>
+          <Slider
+            style={{ marginTop: 10, marginBottom: 10 }}
+            label="y postition"
+            value={y}
+            onChange={(e, value) => setY(value)}
+            step={0.1}
+            valueLabelDisplay="on"
+            max={5}
+            min={-5}
           />
-        </RadioGroup>
-      </OurContainer>
-      <OurContainer botMode={bot.mode}>
-        <Label>X position</Label>
-        <Slider
-          style={{ marginTop: 10 }}
-          label="x postition"
-          value={x}
-          onChange={(e, value) => setX(value)}
-          step={0.1}
-          valueLabelDisplay="on"
-          max={10}
-          min={-10}
-        />
-        <Label>Y position</Label>
-        <Slider
-          style={{ marginTop: 10, marginBottom: 10 }}
-          label="y postition"
-          value={y}
-          onChange={(e, value) => setY(value)}
-          step={0.1}
-          valueLabelDisplay="on"
-          max={5}
-          min={-5}
-        />
-        <Button
-          style={{ marginTop: 10, marginBottom: 10 }}
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            sendManualPosition(0, x, y);
-          }}
-        >
-          Send Manual position
-        </Button>
-      </OurContainer>
+          <Button
+            style={{ marginTop: 10, marginBottom: 10 }}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              sendManualPosition(0, x, y);
+            }}
+          >
+            Send Manual position
+          </Button>
+        </OurContainer>
+      </Grid>
+      <Grid item>
+        <Joystick botIndex={bot.index} />
+      </Grid>
     </Grid>
   );
 }
@@ -93,5 +107,7 @@ const OurContainer = styled(FormControl)`
       ? "rgba(0, 128, 28, .5)"
       : props.botMode === 1
       ? "rgba(128, 0, 28, .5)"
+      : props.botMode === 2
+      ? "rgba(0, 0, 128, .5)"
       : "rgba(64, 64, 28, .4)"};
 `;

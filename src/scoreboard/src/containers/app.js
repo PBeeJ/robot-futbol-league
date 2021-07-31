@@ -10,6 +10,7 @@ import { updateWhoAmI } from "../modules/whoAmI";
 
 import Home from "./home";
 import Admin from "./admin";
+import ManualControls from "./manualControls";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -41,6 +42,7 @@ const App = () => {
     <>
       <Route exact path="/" component={Home} />
       <Route exact path="/admin" component={Admin} />
+      <Route path="/play" component={ManualControls} />
     </>
   );
 };

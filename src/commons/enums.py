@@ -30,6 +30,7 @@ VALID_BOT_INDEXES = set(item.value for item in BOT_INDEXES)
 class BOT_MODES(Enum):
     auto = 0
     manual = 1
+    manualThrottle = 2
 
 
 VALID_BOT_MODES = set(item.value for item in BOT_MODES)

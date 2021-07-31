@@ -34,6 +34,10 @@ GAME_STATE = {
             "x": 0,
             "y": 0,
             "heading": 0
+        },
+        "manualThrottle": {
+            "left": 0,
+            "right": 0,
         }
     }, {
         "name": "player-1",
@@ -46,6 +50,10 @@ GAME_STATE = {
             "x": 0,
             "y": 0,
             "heading": 0
+        },
+        "manualThrottle": {
+            "left": 0,
+            "right": 0,
         }
     }, {
         "name": "player-2",
@@ -58,6 +66,10 @@ GAME_STATE = {
             "x": 0,
             "y": 0,
             "heading": 0
+        },
+        "manualThrottle": {
+            "left": 0,
+            "right": 0,
         }
     }],
     "scores": [0, 0],

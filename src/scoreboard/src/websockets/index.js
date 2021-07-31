@@ -91,6 +91,17 @@ export function sendManualPosition(botIndex, x, y) {
   });
 }
 
+export function sendManualThrottle(botIndex, left, right) {
+  return sendMessage({
+    type: "manualThrottle",
+    data: {
+      botIndex,
+      left,
+      right,
+    },
+  });
+}
+
 export function increaseScore(botIndex) {
   console.log(`can we please increase the score for player ${botIndex}`);
 }
