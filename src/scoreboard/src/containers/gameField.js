@@ -157,9 +157,10 @@ const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
     <div style={{
       display: "grid",
       gridTemplateColumns: "auto 1fr auto",
-      padding: 30,
+      margin: 30,
       flex: 1,
       width: "100%",
+      outline: "1px solid white",
     }}
     >
       <Goal botIndex={0} showControls={showControls} />

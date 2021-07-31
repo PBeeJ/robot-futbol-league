@@ -2,13 +2,25 @@ import React from "react";
 import styled from "styled-components";
 import { connect } from "react-redux";
 
-import { blue, red, purple } from "@material-ui/core/colors";
+import { blue, yellow, red, purple } from "@material-ui/core/colors";
 
 import { useLocation } from "react-router";
 import ScoreBoard from "./scoreBoard";
+import GameField from "./gameField";
 import Joystick from "../components/joystick";
 import { H1 } from "../components/styledComponents";
 import VideoPlayer from "../components/VideoPlayer";
+
+function getColor(color) {
+  switch (color) {
+    case 0:
+      return yellow[400];
+    case 1:
+      return blue[400];
+    default:
+      return red[400];
+  }
+}
 
 const ManualControls = ({ videoState }) => {
   const { search } = useLocation();
@@ -19,16 +31,20 @@ const ManualControls = ({ videoState }) => {
 
   return (
     <div style={{
-      backgroundColor: isBluePlayer ? blue[100] : red[100],
+      backgroundColor: getColor(botIndex),
       height: "100%",
       display: "grid",
       gridTemplateRows: "auto auto 1fr",
       position: "relative",
+      padding: 20,
     }}
     >
       <Title>{`${isBluePlayer ? "Blue" : "Red"} player` }</Title>
       <ScoreBoard />
-      <Joystick botIndex={botIndex} />
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
+        <Joystick botIndex={botIndex} />
+        <GameField />
+      </div>
       <VideoPlayer video={videoState.video} isFullScreen />
       <div style={{ position: "absolute", top: 0, right: 0, width: "200px" }} />
     </div>

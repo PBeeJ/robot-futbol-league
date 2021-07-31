@@ -1,7 +1,7 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable no-alert */
 import React, { useState } from "react";
 
-import { red } from "@material-ui/core/colors";
 import useMeasure from "react-use-measure";
 import { sendManualThrottle } from "../websockets";
 
@@ -13,7 +13,6 @@ export default function Joystick({ botIndex }) {
   const JOYSTICK_WIDTH = bounds.width;
 
   const handleMouseDown = (event) => {
-    console.log("event: ", event.clientX);
     event.preventDefault();
     setMouseIsDown(true);
     setRelativePosition(event.clientX, event.clientY);
@@ -47,7 +46,7 @@ export default function Joystick({ botIndex }) {
 
   const setRelativePosition = (clientX, clientY) => {
     const offsetLeft = clientX - bounds.left - (JOYSTICK_WIDTH / 2);
-    const offsetTop = clientY - bounds.top - (JOYSTICK_WIDTH / 2);
+    const offsetTop = clientY - bounds.top - (JOYSTICK_WIDTH / 2) - 50;
     setRelativeX(offsetLeft);
     setRelativeY(offsetTop);
 
@@ -57,13 +56,14 @@ export default function Joystick({ botIndex }) {
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       style={{
+        marginTop: 20,
         position: "relative",
         height: JOYSTICK_WIDTH || "100%",
         width: JOYSTICK_WIDTH || "100%",
-        border: "1px solid black",
+        border: "1px dashed #444",
+        maxWidth: 600,
       }}
       ref={containerRef}
       onMouseDown={handleMouseDown}
@@ -76,12 +76,12 @@ export default function Joystick({ botIndex }) {
       <div
         style={{
          position: "absolute",
-         top: (JOYSTICK_WIDTH / 2) + relativeY - 5,
-         left: (JOYSTICK_WIDTH / 2) + relativeX - 5,
-         height: 10,
-         width: 10,
-         borderRadius: 5,
-         backgroundColor: red[600],
+         top: (JOYSTICK_WIDTH / 2) + relativeY - 20,
+         left: (JOYSTICK_WIDTH / 2) + relativeX - 12,
+         height: 20,
+         width: 20,
+         borderRadius: 10,
+         backgroundColor: "white",
         }}
       />
     </div>
