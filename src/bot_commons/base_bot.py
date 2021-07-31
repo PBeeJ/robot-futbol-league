@@ -21,7 +21,13 @@ gameState: GameState.GameState = None
 # localBotState: GameState.LocalBotState = None
 headingOffset = None
 fullSpeed = None
-rotationSpeed = None
+# rotationSpeed = None
+
+# Don't check in
+# Hardcoded versions (so we don't have to rerun calibration each time)
+# headingOffset =  -15.086806638028634
+# fullSpeed = 2.11
+rotationSpeed = -133
 
 controller_socket = None
 movement_callback = None
@@ -33,12 +39,10 @@ def start(passed_movement_callback):
     movement_callback = passed_movement_callback
     asyncio.run(basic_bot())
 
-
+# Magic mystery code.  TODO, learn how this works.
 async def basic_bot():
     recvTask = asyncio.create_task(state_update_task())
-    # sendHeadingTask = asyncio.create_task(send_heading_task())
     movementTask = asyncio.create_task(movement_task())
-
     await asyncio.wait([recvTask, movementTask])
 
 
@@ -58,7 +62,7 @@ async def state_update_task():
                     message_type = data.get("type")
                     message_data = data.get("data")
                     if message_type == "state":
-                        print('GAME_STATE update: ' + message)
+                        # print('GAME_STATE update: ' + message)
                         ts = time.time()
                         heading = compass.get_heading()
                         if not gameState:
@@ -72,7 +76,7 @@ async def state_update_task():
                     elif message_type == "iseeu":
                         if gameState is not None:
                             gameState.updateMyName(message_data["knownBot"]["name"])
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(.05)
         except:
             traceback.print_exc()
 
@@ -100,10 +104,27 @@ async def send_mode(mode):
         else:
             await asyncio.sleep(.25)
 
+# TODO rotate less and go backwards if that's an option
+def angleDiff(dest, curr):
+    # print(f"dest - curr {dest} - {curr}")
+    rotateAmount = (dest - curr)%360
+    # print(f"rotateAmount {rotateAmount}")
+    return rotateAmount - 360 if rotateAmount > 180 else rotateAmount
+
+
 
 def safeAtan(dx, dy):
-    sdy = .0001 if dy < .0001 else dy
-    return math.atan(dx / sdy) * 180 / 3.14159
+    sdx = dx
+    if abs(dx) < .0001:
+        if dx >= 0:
+            sdx = .0001
+        else:
+            sdx = -.0001
+    # print(f"math.atan({dy} / {sdx})")
+    if(sdx < 0):
+        return -180 + math.atan(dy / sdx) * 180 / 3.14159
+    else:
+        return math.atan(dy / sdx) * 180 / 3.14159
 
 
 def dist(dx, dy):
@@ -120,7 +141,7 @@ async def calibrate(localBot):
     print(f"Starting linear calibration at {startTuple}")
     start = time.time()
     movement.move(1, 1, True)
-    await asyncio.sleep(1)
+    await asyncio.sleep(0.75)
     stop = time.time()
     movement.stop_moving()
     stopTuple = await localBot.getStableLocation()
@@ -131,84 +152,120 @@ async def calibrate(localBot):
     dy = stopTuple[1] - startTuple[1]
     h = (stopTuple[3] + startTuple[3]) / 2
     trueHeading = safeAtan(dx, dy)
-    headingOffset = trueHeading - h
+    headingOffset = angleDiff(trueHeading, h)
     fullSpeed = dist(dx, dy) / (stop - start)
-    print(f"CALIBRATED: Found heading offset: {headingOffset} and forward speed: {fullSpeed}")
+    print(f"""CALIBRATED: Given measured true heading {trueHeading} and compass reading {h}
+Found heading offset: {headingOffset} and forward speed: {fullSpeed}""")
     # Put the robot back
-    movement.move(1, 1, False)
-    await asyncio.sleep(1)
-    movement.stop_moving()
+    # Nah don't
+    # movement.move(1, 1, False)
+    # await asyncio.sleep(1)
+    # movement.stop_moving()
 
-    # Rotational
-    print("Measuring rotation speed")
-    startTuple = await localBot.getStableLocation()
-    print(f"Starting rotational calibration at {startTuple}")
-    start = time.time()
-    movement.rotate(1, True)
-    await asyncio.sleep(1)
-    stop = time.time()
-    movement.stop_moving()
-    stopTuple = await localBot.getStableLocation()
-    print(f"Completing rotational calibration at {stopTuple}")
+    # This doesn't help much and it's annoying to sit through
+    # # Rotational
+    # print("Measuring rotation speed")
+    # startTuple = await localBot.getStableLocation()
+    # print(f"Starting rotational calibration at {startTuple}")
+    # start = time.time()
+    # # Clockwise is negative angle change by math convention, but positive according to the compass
+    # movement.rotate(1, True)
+    # await asyncio.sleep(1)
+    # stop = time.time()
+    # movement.stop_moving()
+    # stopTuple = await localBot.getStableLocation()
+    # print(f"Completing rotational calibration at {stopTuple}")
 
-    rotationSpeed = (stopTuple[3] - startTuple[3]) / (stop - start)
-    print(f"CALIBRATED: Found rotation speed: {rotationSpeed}")
-    # Put the robot back
-    movement.rotate(1, False)
-    await asyncio.sleep(1)
-    movement.stop_moving()
+    # # We know the angle is decreasing, and that we do less than one full rotation
+    # # so if we have stopAngle > startAngle we should add 360 to startAngle
+    # stopAngle = stopTuple[3]
+    # startAngle = startTuple[3]
+    # if stopAngle > startAngle:
+    #     startAngle += 360
+    # rotationSpeed = (stopAngle - startAngle) / (stop - start)
+    # # But we want to use standard math convention (for easier trig)
+    # rotationSpeed = rotationSpeed
+    # print(f"CALIBRATED: Found rotation speed: {rotationSpeed}")
+    # # Put the robot back
+    # movement.rotate(1, False)
+    # await asyncio.sleep(1)
+    # movement.stop_moving()
 
-
-# TODO rotate less and go backwards if that's an option
-def angleDiff(dest, curr):
-    rotateAmount = (dest - curr)%360
-    rotateAmount = rotateAmount - 360 if rotateAmount > 180 else rotateAmount
 
 
 async def rotateTo(dest):
     global headingOffset
     global rotationSpeed
-    curr = compass.get_heading() + headingOffset
-    angleDiff =  angleDiff(curr, dest)
-    while abs(angleDiff) > 5:
-        movement.rotate(min(1, abs(angleDiff) * .5), angleDiff > 0)
-        await asyncio.sleep(angleDiff / rotationSpeed / 2)
+
+    heading = compass.get_heading()
+    curr = heading + headingOffset
+    ad = angleDiff(dest, curr)
+    # print(f"heading curr dest diff: {heading} {curr} {dest} {ad}")
+    while abs(ad) > 5:
+        movement.rotate(min(1, abs(ad) * .5), ad < 0)
+        await asyncio.sleep(ad / rotationSpeed)
         movement.stop_moving()
-        curr = compass.get_heading() + headingOffset
-        angleDiff =  angleDiff(curr, dest)
+        heading = compass.get_heading()
+        curr = heading + headingOffset
+        ad =  angleDiff(dest, curr)
+        # print(f"heading curr dest diff: {heading} {curr} {dest} {ad}")
 
 
 async def moveTowards(x0, y0, h0, x1, y1):
+
+    # print(f"==== NEW MOVETOWARDS ===== moveTowards({x0}, {y0}, {h0}, {x1}, {y1})")
+    print(f"==+== NEW MOVETOWARDS =====")
+
     routeHeading = safeAtan(x1 - x0, y1 - y0)
-    dist = dist(x1 - x0, y1 - y0)
+    # print(f"routeHeading = {routeHeading} = safeAtan({x1} - {x0}, {y1} - {y0})")
+
+
+
+    d = dist(x1 - x0, y1 - y0)
+    print(f"Distance = {d}")
+
     adiff = angleDiff(routeHeading, h0)
+    print(f"Angle Diff = {adiff} = angleDiff({routeHeading}, {h0})")
+
+    await rotateTo(routeHeading)
+
     lcor, rcor = 0, 0 # Left & right throttle corrections, used to correct heading as we move
-    if abs(adiff) > 5:
-        if(adiff > 0):
-            rcor = .1
-        else:
-            lcor = .1
-    mag = max(1, dist * .5)
+    # TODO dynamic correction
+    # if abs(adiff) > 5:
+    #     if(adiff > 0):
+    #         rcor = .1
+    #     else:
+    #         lcor = .1
+    # print(f"Distance for mag factor")
+    # mag = min(1, d * .5)
+    # print(f"movement.move({mag} - {lcor}, {mag} - {rcor}, True)")
+    mag = 1
+    runtime = d / fullSpeed * 0.3
+    print(f"Run For {runtime}")
     movement.move(mag - lcor, mag - rcor, True)
-    await asyncio.sleep(dist / fullSpeed * 0.9)
+    # print(f"sleep time = {d} / {fullSpeed} * 0.9 = {d / fullSpeed * 0.9}")
+    await asyncio.sleep(runtime)
     # TODO Improve this by getting better at projecting where we are
     movement.stop_moving()
 
 
 async def moveToManual(localBot, x1, y1, h1):
     global headingOffset
+    print(f"Running moveToManual with headingOffset: {headingOffset} and args {localBot.toString()} {x1} {y1} {h1}")
     movement.stop_moving()
-    # x1, y1 = localBot.manualPostion["x"], localBot.manualPostion["y"]
-    routeHeading = safeAtan(x - x0, y - y0)
-    rotateTo(routeHeading)
-    startTuple = await localBot.getLocationAfter(time.time())
-    dist = dist(x1 - startTuple[0], y1 - startTuple[1])
-    while dist > 0.2:
-        moveTowards(startTuple[0], startTuple[1], startTuple[3], x1, y1)
+    tupleDequeue = await localBot.getLocationAfter(time.time())
+    startTuple = tupleDequeue[0]
+    print(f"startTuple: {startTuple}")
+    routeHeading = safeAtan(x1 - startTuple[0], y1 - startTuple[1])
+    print(f"routeHeading: {routeHeading}")
+    await rotateTo(routeHeading)
+    while dist(x1 - startTuple[0], y1 - startTuple[1]) > 2:
+        latestHeading = safeAtan(tupleDequeue[1][0] - startTuple[0], tupleDequeue[1][1] - startTuple[1])
+        await moveTowards(startTuple[0], startTuple[1], latestHeading, x1, y1)
         ts = time.time()
-        startTuple = await localBot.getLocationAfter(time.time())
-        dist = dist(x1 - startTuple[0], y1 - startTuple[1])
-    rotateTo(angleDiff(h1, headingOffset))
+        tupleDequeue = await localBot.getLocationAfter(time.time())
+        startTuple = tupleDequeue[0]
+    await rotateTo(angleDiff(h1, headingOffset))
 
 
 
@@ -218,23 +275,24 @@ async def movement_task():
     global gameState
 
     while True:
-        await asyncio.sleep(.05)
+        await asyncio.sleep(1)
         try:
             if not gameState or not gameState.getLocalBot():
                 print("No Game State yet and/or Local Bot, maybe game controller is down?  Waiting a bit")
                 await asyncio.sleep(1)
                 continue
-            if gameState.gameStatus == enums.GAME_STATES.game_paused.value:
+            if gameState.gameStatus == enums.GAME_STATES.game_paused:
                 print("Game paused.")
                 movement.stop_moving()
                 continue
+            # We calibrate if we need to
             if not headingOffset:
                 print("Uncalibrated.  Calibrating now.")
                 await calibrate(gameState.getLocalBot())
                 continue
-            if gameState.gameStatus == enums.GAME_STATES.return_home.value:
-                print("Heading home.")
-                await moveManual(gameState.getLocalBot(), localBot.manualPostion["x"], localBot.manualPostion["y"])
+            # if gameState.gameStatus == enums.GAME_STATES.return_home:
+            print("Heading home.")
+            await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"], gameState.getLocalBot().manualPosition["heading"])
             # print("No action take in movement_task")
             # gameStatus = gameState.gameStatus
             # if should_call_movement_callback(botMode, gameStatus):
@@ -245,7 +303,9 @@ async def movement_task():
             sys.exit(1)
         except: # catch *all* exceptions, print them, get over it
             traceback.print_exc()
+            movement.stop_moving()
             sys.exit(1)
+
 
 
 
