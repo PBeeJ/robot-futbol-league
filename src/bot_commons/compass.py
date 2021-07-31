@@ -9,12 +9,13 @@ bus = smbus.SMBus(1)
 address = 0x60
 
 
+# Make clockwise negative
 def get_heading():
     bear1 = bus.read_byte_data(address, 2)
     bear2 = bus.read_byte_data(address, 3)
     bear = (bear1 << 8) + bear2
     bear = bear/10.0
-    return bear
+    return 360 - bear
 
 
 def add_degrees(heading, deg):

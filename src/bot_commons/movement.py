@@ -36,7 +36,7 @@ def rotate(throttle, clockwise):
         leftMotor.throttle = cw * throttle
     for rightMotor in rightMotors:
         rightMotor.throttle =  -1 * cw * throttles[throttle]
-    print(f"rotate throttle: {leftMotors[0].throttle}  clockwise: {clockwise}")
+    # print(f"rotate throttle: {leftMotors[0].throttle}  clockwise: {clockwise}")
     # torqueState.updateTorque(rightMotors[0].throttle, leftMotors[0].throttle, time.time())
 
 
