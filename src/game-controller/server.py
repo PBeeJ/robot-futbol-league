@@ -269,6 +269,16 @@ async def handleGameResumeMessage(websocket):
     if gameState != enums.GAME_STATES.game_over.value:
         DataStore.resumeGame()
 
+async def handlePlayVideoMessage(websocket, data):
+    if not validate_admin(websocket, 'game resume'):
+        return
+
+    message = json.dumps({
+        "type": "playVideo",
+        "data": data
+    })
+    await send_message("all", message)
+
 
 async def handleMessage(websocket, path):
     await register(websocket)
@@ -322,7 +332,11 @@ async def handleMessage(websocket, path):
             # {type: "gameReturnToHome"}
             elif messageType == "gameReturnToHome":
                 await handleGameReturnToHomeMessage(websocket)
-
+            # Sent by the admin UI to tell scoreboard app to play
+            # a video.  The server relays the message to all connected sockets
+            # {type: "playVideo", data: {index: 0}}
+            elif messageType == "playVideo":
+                await handlePlayVideoMessage(websocket, messageData)
             else:
                 logging.error("received unsupported message: %s", jsonData)
     finally:

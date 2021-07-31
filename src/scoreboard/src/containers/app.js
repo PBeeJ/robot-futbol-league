@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { startClient } from "../websockets";
 import { updateGameConfig } from "../modules/gameConfig";
 import { updateGameState } from "../modules/gameState";
+import { updateVideoState } from "../modules/videoState";
 import { updateWhoAmI } from "../modules/whoAmI";
 
 import Home from "./home";
@@ -27,8 +28,11 @@ const App = () => {
       case "iseeu":
         dispatch(updateWhoAmI(data));
         break;
+      case "playVideo":
+        dispatch(updateVideoState(data));
+        break;
       default:
-        console.error("got unknown message from game-controller", { data });
+        console.error("got unknown message from game-controller", type, { data });
         break;
     }
   }
