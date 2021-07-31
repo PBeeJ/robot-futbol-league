@@ -1,5 +1,4 @@
 from commons import enums
-from bot_commons import dumper
 from collections import deque
 import asyncio
 import time
@@ -25,17 +24,19 @@ class BotState:
     def toString(self):
         return f"(x,y,ts)[0]: {self.ptuple[0] if self.ptuple else 'None'}\n(x,y,ts)[1]: {self.ptuple[1] if self.ptuple and len(self.ptuple) > 1 else 'None'} "
 
+
 def stable(ptuple0, ptuple1):
     return (abs(ptuple0[0] - ptuple1[0]) < 0.05 and
-    abs(ptuple0[1] - ptuple1[1]) < 0.05 and
-    abs(ptuple0[2] - ptuple1[2]) > 0.2 and
-    abs(ptuple0[3] - ptuple1[3]) < 2)
+            abs(ptuple0[1] - ptuple1[1]) < 0.05 and
+            abs(ptuple0[2] - ptuple1[2]) > 0.2 and
+            abs(ptuple0[3] - ptuple1[3]) < 2)
+
 
 class LocalBotState(BotState):
     # h = heading
     def __init__(self):
         self.ptuple = deque([], HISTORY_SIZE)
-        self.manualPosition = None;
+        self.manualPosition = None
 
     def updatePos(self, x: float, y: float, ts: float, h: float):
         self.ptuple.appendleft((x, y, ts, h))
@@ -45,6 +46,7 @@ class LocalBotState(BotState):
 (x,y,ts)[1]: {self.ptuple[1] if self.ptuple and len(self.ptuple) > 1 else 'None'}
 manualPosition: {self.manualPosition if self.manualPosition else None}
 """
+
     def toString(self):
         return f"""(x,y,ts,h)[0]: {self.ptuple[0] if self.ptuple else 'None'}"""
 
@@ -69,9 +71,6 @@ manualPosition: {self.manualPosition if self.manualPosition else None}
                 await asyncio.sleep(0.5)
 
 
-
-
-
 # GameState that's relevant to bots as they do their bot thing (figure out where to go & what to do)
 # Note heading is omitted (bots only need to know their own heading, and only while they're changing
 # direction...maybe)
@@ -84,15 +83,12 @@ class GameState:
         self.gameStatus = None
         self.updateFromMessage(message, timestamp, heading)
 
-
     def getLocalBot(self) -> LocalBotState:
         return self.bots[self.myName] if self.myName in self.bots else None
-
 
     def updateMyName(self, name):
         print(f"Oh hey, I just learned my name is {name}. I am friend? ;)")
         self.myName = name
-
 
     def toString(self):
         return f"""
@@ -102,7 +98,6 @@ class GameState:
   player-1:    {self.bots["player-1"].toString() if "player-1" in self.bots else 'None'}
   player-2:    {self.bots["player-2"].toString() if "player-2" in self.bots else 'None'}
 """
-
 
     def updateFromMessage(self, message, timestamp, heading):
         # print(f"GameState object update from Message: {message}")
@@ -118,12 +113,15 @@ class GameState:
             if self.myName == botName:
                 if botName not in self.bots:
                     self.bots[botName] = LocalBotState()
-                self.bots[botName].updatePos(botMsg["x"], botMsg["y"], timestamp, heading)
-                self.bots[botName].manualPosition =  botMsg["manualPosition"]
-                print(f"Updated LocalBot State: {self.getLocalBot().toString()}")
+                self.bots[botName].updatePos(
+                    botMsg["x"], botMsg["y"], timestamp, heading)
+                self.bots[botName].manualPosition = botMsg["manualPosition"]
+                print(
+                    f"Updated LocalBot State: {self.getLocalBot().toString()}")
             else:
                 if botName not in self.bots:
                     self.bots[botName] = BotState()
-                self.bots[botName].updatePos(botMsg["x"], botMsg["y"], timestamp)
+                self.bots[botName].updatePos(
+                    botMsg["x"], botMsg["y"], timestamp)
 
         # print(f"GameState: {self.toString()}")

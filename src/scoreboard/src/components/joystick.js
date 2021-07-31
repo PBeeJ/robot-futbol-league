@@ -36,7 +36,8 @@ export default function Joystick({ botIndex }) {
     setRelativeX(offsetLeft);
     setRelativeY(offsetTop);
 
-    const rawThrottle = 0.3 * (offsetTop / 100) + 0.6;
+    const rawThrottle = (offsetTop / 100) * -1;
+    console.log({ rawThrottle });
 
     sendManualThrottle(botIndex, rawThrottle, rawThrottle);
   };
