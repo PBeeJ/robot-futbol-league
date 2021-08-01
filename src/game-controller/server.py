@@ -146,6 +146,11 @@ async def handlePositionsMessage(websocket, data):
 
     for positionData in data:
         botIndex = positionData["botIndex"]
+
+        # TODO remove me
+        if botIndex == 0:
+            botIndex = 1
+
         if not is_valid_bot_index(botIndex):
             print(
                 f"received position message from invalid bot index ({botIndex})")
@@ -171,6 +176,7 @@ async def handlePositionsMessage(websocket, data):
             knownBot["y"] = y
 
     if didUpdate:
+        print(f"Entire game state: {DataStore.GAME_STATE}")
         DataStore.GAME_STATE['isDirty'] = True
 
 
@@ -304,6 +310,16 @@ async def handlePlayVideoMessage(websocket, data):
     await send_message("all", message)
 
 
+async def handleIncreaseScore(websocket, data):
+    botIndex = data["botIndex"]
+    DataStore.increaseScore(botIndex)
+
+
+async def handleDecreaseScore(websocket, data):
+    botIndex = data["botIndex"]
+    DataStore.decreaseScore(botIndex)
+
+
 async def handleMessage(websocket, path):
     await register(websocket)
     try:
@@ -359,6 +375,13 @@ async def handleMessage(websocket, path):
             # {type: "gameReturnToHome"}
             elif messageType == "gameReturnToHome":
                 await handleGameReturnToHomeMessage(websocket)
+
+            # {type: "increaseScore", data: { botIndex: 1 }}
+            elif messageType == "increaseScore":
+                await handleIncreaseScore(websocket, messageData)
+            # {type: "decreaseScore", data: { botIndex: 1 }}
+            elif messageType == "decreaseScore":
+                await handleDecreaseScore(websocket, messageData)
             # Sent by the admin UI to tell scoreboard app to play
             # a video.  The server relays the message to all connected sockets
             # {type: "playVideo", data: {index: 0}}

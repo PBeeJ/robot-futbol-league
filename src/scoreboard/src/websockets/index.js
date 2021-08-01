@@ -103,11 +103,21 @@ export function sendManualThrottle(botIndex, left, right) {
 }
 
 export function increaseScore(botIndex) {
-  console.log(`can we please increase the score for player ${botIndex}`);
+  return sendMessage({
+    type: "increaseScore",
+    data: {
+      botIndex,
+    },
+  });
 }
 
 export function decreaseScore(botIndex) {
-  console.log(`can we please decrease the score for player ${botIndex}`);
+  return sendMessage({
+    type: "decreaseScore",
+    data: {
+      botIndex,
+    },
+  });
 }
 
 export function playVideo(video) {

@@ -159,3 +159,13 @@ def stopGame():
 def clockTick():
     GAME_STATE["gameStatus"]["secondsRemaining"] -= 1
     GAME_STATE["isDirty"] = True
+
+
+def increaseScore(botIndex):
+    GAME_STATE["scores"][botIndex - 1] += 1
+    GAME_STATE["isDirty"] = True
+
+
+def decreaseScore(botIndex):
+    GAME_STATE["scores"][botIndex - 1] -= 1
+    GAME_STATE["isDirty"] = True
