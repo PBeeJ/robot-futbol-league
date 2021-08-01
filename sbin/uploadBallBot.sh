@@ -4,6 +4,10 @@ set -x
 TARGET_HOST="pi@ball-bot.local"
 TARGET_DIR="/home/pi/robot-futbol-league"
 
+if [ "$1" != "" ]; then
+  TARGET_HOST=$1
+fi
+
 ssh $TARGET_HOST "mkdir -p $TARGET_DIR"
 ssh $TARGET_HOST "mkdir -p $TARGET_DIR/ball-bot"
 ssh $TARGET_HOST "mkdir -p $TARGET_DIR/commons"
