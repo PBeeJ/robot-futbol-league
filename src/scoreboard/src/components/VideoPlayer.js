@@ -7,7 +7,6 @@ export default function VideoPlayer({ isFullScreen, video }) {
   const videoRef = useRef();
 
   const handleEnded = () => {
-    console.log("ended");
     playVideo(null);
   };
 

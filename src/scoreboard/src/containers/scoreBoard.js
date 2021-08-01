@@ -61,6 +61,7 @@ const OurContainer = styled(Container)`
   max-width: 600px;
   text-align: center;
   border-radius: 10px;
+  padding: 20px;
 `;
 
 const mapStateToProps = (state) => ({

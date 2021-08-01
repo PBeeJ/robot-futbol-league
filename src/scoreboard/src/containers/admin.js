@@ -39,7 +39,7 @@ const Admin = ({ gameState, videoState }) => (
       <VideoControls />
       <VideoPlayer video={videoState.video} />
     </Grid>
-    <GameField showControls />
+    <GameField showControls botIndex={0} />
   </Grid>
   );
 

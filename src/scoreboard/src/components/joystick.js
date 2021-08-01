@@ -63,7 +63,7 @@ export default function Joystick({ botIndex }) {
         height: JOYSTICK_WIDTH || "100%",
         width: JOYSTICK_WIDTH || "100%",
         border: "1px dashed #444",
-        maxWidth: 600,
+        maxWidth: 500,
       }}
       ref={containerRef}
       onMouseDown={handleMouseDown}

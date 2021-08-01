@@ -7,7 +7,7 @@ import { blue, yellow, red, purple } from "@material-ui/core/colors";
 import { useLocation } from "react-router";
 import ScoreBoard from "./scoreBoard";
 import GameField from "./gameField";
-import Joystick from "../components/joystick";
+// import Joystick from "../components/joystick";
 import { H1 } from "../components/styledComponents";
 import VideoPlayer from "../components/VideoPlayer";
 
@@ -36,14 +36,20 @@ const ManualControls = ({ videoState }) => {
       display: "grid",
       gridTemplateRows: "auto auto 1fr",
       position: "relative",
-      padding: 20,
     }}
     >
       <Title>{`${isBluePlayer ? "Blue" : "Red"} player` }</Title>
       <ScoreBoard />
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column" }}>
-        <Joystick botIndex={botIndex} />
-        <GameField />
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexDirection: "column",
+        padding: 20,
+      }}
+      >
+        {/* <Joystick botIndex={botIndex} /> */}
+        <GameField botIndex={botIndex} />
       </div>
       <VideoPlayer video={videoState.video} isFullScreen />
       <div style={{ position: "absolute", top: 0, right: 0, width: "200px" }} />

@@ -14,9 +14,10 @@ const gridTemplateColumns = "1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr
 const playerDiameterInCM = 21;
 
 function Goal({ botIndex, showControls }) {
+  const isBluePlayer = botIndex === 1;
   return (
     <div style={{
-      backgroundColor: botIndex === 0 ? red[400] : blue[400],
+      backgroundColor: isBluePlayer ? blue[400] : red[400],
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -37,7 +38,7 @@ function Goal({ botIndex, showControls }) {
             Goal++
           </Button>
         )}
-        {botIndex === 0 ? "red goal" : "blue goal"}
+        {isBluePlayer ? "blue goal" : "red goal"}
         {showControls && (
           <Button
             style={{ backgroundColor: "rgba(255,255,255,0.3)", marginTop: 20 }}
@@ -55,15 +56,22 @@ function FieldCell() {
   return <div style={{ outline: "1px solid rgba(255,255,255,0.5)", pointerEvents: "none" }} />;
 }
 
+const SHRINK_FACTOR_X = 0.85;
+const SHRINK_FACTOR_Y = 0.75;
+
 const handleFieldClick = (
   e, botIndex, fieldCenterX, fieldCenterY, fieldWidthUnit, fieldHeightUnit,
 ) => {
   const rect = e.target.getBoundingClientRect();
-  const x = parseFloat(((e.clientX - rect.x - fieldCenterX) / fieldWidthUnit).toFixed(2));
-  const y = parseFloat(((e.clientY - rect.y - fieldCenterY) / fieldHeightUnit).toFixed(2));
+  const x = parseFloat(
+    ((e.clientX - rect.x - fieldCenterX) / fieldWidthUnit).toFixed(2),
+) * SHRINK_FACTOR_X;
+  const y = parseFloat(
+    ((e.clientY - rect.y - fieldCenterY) / fieldHeightUnit).toFixed(2),
+) * -SHRINK_FACTOR_Y;
   const messageObject = {
     type: "manualPosition",
-    data: { botIndex, x, y, heading: null },
+    data: { botIndex, x, y, heading: 0 },
   };
   sendMessage(messageObject);
 };
@@ -91,8 +99,8 @@ function getPosition(value, offset) {
 
 function getPlayerColor(botIndex) {
   switch (botIndex) {
-    case 1: return red[400];
-    case 2: return blue[400];
+    case 1: return blue[400];
+    case 2: return red[400];
     default: return "white";
   }
 }
@@ -157,7 +165,6 @@ const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
     <div style={{
       display: "grid",
       gridTemplateColumns: "auto 1fr auto",
-      margin: 30,
       flex: 1,
       width: "100%",
       outline: "1px solid white",
