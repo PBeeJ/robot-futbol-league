@@ -168,6 +168,7 @@ const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
       flex: 1,
       width: "100%",
       outline: "1px solid white",
+      transform: "rotate(180deg)",
     }}
     >
       <Goal botIndex={0} showControls={showControls} />
@@ -180,13 +181,15 @@ const GameField = ({ gameState, gameConfig, showControls, botIndex }) => {
         }}
         ref={containerRef}
       >
-        <PlayerPiece
+        {/*
+          NOTE: We don't need the ball bot yet
+         <PlayerPiece
           botIndex={0}
           positions={positions}
           pieceWidth={pieceWidth}
           pieceHeight={pieceHeight}
           bounds={bounds}
-        />
+        /> */}
         <PlayerPiece
           botIndex={1}
           positions={positions}
