@@ -80,6 +80,7 @@ async def state_update_task():
                         GAME_CONFIG = message_data
                         # print(f"CONFIG: {message_data}")
                     elif message_type == "iseeu":
+                        # print(f"CONFIG: {message_data}")
                         if gameState is not None:
                             gameState.updateMyName(
                                 message_data["knownBot"]["name"])
@@ -233,10 +234,10 @@ async def rotateDistance(diff):
         ad =  angleDiff(start + diff, curr)
 
 
-async def moveToManual(localBot, x1, y1, h1):
+async def moveToManual(localBot, x1, y1):
     global headingOffset
     print(
-        f"Running moveToManual with headingOffset: {headingOffset} and args {localBot.toString()} {x1} {y1} {h1}")
+        f"Running moveToManual with headingOffset: {headingOffset} and args {localBot.toString()} {x1} {y1}")
     movement.stop_moving()
     tupleDequeue = await localBot.getLocationAfter(time.time())
     startTuple = tupleDequeue[0]
@@ -245,6 +246,8 @@ async def moveToManual(localBot, x1, y1, h1):
     print(f"routeHeading: {routeHeading}")
     await rotateTo(routeHeading)
     while dist(x1 - startTuple[0], y1 - startTuple[1]) > 2:
+        print(f"==== NEW MOVE ===== to ({x1}, {y1}) from ({startTuple[0]}, {startTuple[1]})")
+
         x0 = startTuple[0]
         y0 = startTuple[1]
         stepDist = dist(tupleDequeue[1][0] - x0, tupleDequeue[1][1] - y0)
@@ -252,16 +255,16 @@ async def moveToManual(localBot, x1, y1, h1):
         print(f"Distance = {d}, stepDistance = {stepDist}")
 
         latestHeading = safeAtan(x0 - tupleDequeue[1][0], y0 - tupleDequeue[1][1])
-        if(stepDist > 2):
+        if(stepDist > .5):
             # print(f"==== NEW MOVETOWARDS ===== moveTowards({x0}, {y0}, {h0}, {x1}, {y1})")
-            print(f"==== NEW MOVETOWARDS =====")
+            print(f"==== NEW Angle Rotate =====")
 
             routeHeading = safeAtan(x1 - x0, y1 - y0)
             # print(f"routeHeading = {routeHeading} = safeAtan({x1} - {x0}, {y1} - {y0})")
 
 
             adiff = angleDiff(routeHeading, latestHeading)
-            print(f"Angle Diff = {adiff} = angleDiff({routeHeading}, {h0})")
+            print(f"Angle Diff = {adiff} = angleDiff({routeHeading}, {latestHeading})")
 
             await rotateDistance(adiff)
 
@@ -277,10 +280,11 @@ async def moveToManual(localBot, x1, y1, h1):
         tupleDequeue = await localBot.getLocationAfter(time.time())
         startTuple = tupleDequeue[0]
 
-        x1 = gameState.getLocalBot().manualPosition["x"]
-        y1 = gameState.getLocalBot().manualPosition["y"]
-
-    await rotateTo(angleDiff(h1, headingOffset))
+        if x1 != gameState.getLocalBot().manualPosition["x"] or y1 != gameState.getLocalBot().manualPosition["y"]:
+            print(f"==== NEW DESTINATION =====")
+            x1 = gameState.getLocalBot().manualPosition["x"]
+            y1 = gameState.getLocalBot().manualPosition["y"]
+            localBot.getStableLocation()
 
 
 async def movement_task():
@@ -290,9 +294,6 @@ async def movement_task():
 
     while True:
         await asyncio.sleep(.05)
-        knownBot = WHO_AM_I["knownBot"]
-        botMode = knownBot["mode"]
-
         try:
             if not gameState or not gameState.getLocalBot():
                 print(
@@ -310,7 +311,7 @@ async def movement_task():
                 continue
             # if gameState.gameStatus == enums.GAME_STATES.return_home:
             print("Heading home.")
-            await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"], gameState.getLocalBot().manualPosition["heading"])
+            await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"])
             if gameState.gameStatus == enums.GAME_STATES.game_on.value and botMode == enums.BOT_MODES.manualThrottle.value:
                 manualThrottle = knownBot["manualThrottle"]
                 movement.move(manualThrottle["left"],
