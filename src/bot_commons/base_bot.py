@@ -305,10 +305,10 @@ async def movement_task():
                 movement.stop_moving()
                 continue
             # We calibrate if we need to
-            if not headingOffset:
-                print("Uncalibrated.  Calibrating now.")
-                await calibrate(gameState.getLocalBot())
-                continue
+            # if not headingOffset:
+            #     print("Uncalibrated.  Calibrating now.")
+            #     await calibrate(gameState.getLocalBot())
+            #     continue
             # if gameState.gameStatus == enums.GAME_STATES.return_home:
             print("Heading home.")
             await moveToManual(gameState.getLocalBot(), gameState.getLocalBot().manualPosition["x"], gameState.getLocalBot().manualPosition["y"])

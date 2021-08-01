@@ -7,11 +7,10 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormControl from "@material-ui/core/FormControl";
 
 import { Button, Grid, Slider } from "@material-ui/core";
+import { Link } from "react-router-dom";
 import { BOT_MODES, BOT_MODE_NAMES } from "../selectors/enums";
 import { sendBotMode, sendManualPosition } from "../websockets";
 import { Label } from "./styledComponents";
-
-import Joystick from "./joystick";
 
 export default function BotModeControl({ bot }) {
   const [x, setX] = useState(0);
@@ -94,7 +93,14 @@ export default function BotModeControl({ bot }) {
         </OurContainer>
       </Grid>
       <Grid item>
-        <Joystick botIndex={bot.index} />
+        <Link to={`/play?bot=${bot.index}`} style={{ textDecoration: "none" }}>
+          <Button
+            style={{ marginTop: 10, marginBottom: 10 }}
+            type="button"
+          >
+            Open Controls
+          </Button>
+        </Link>
       </Grid>
     </Grid>
   );
