@@ -39,6 +39,56 @@ def rotate(throttle, clockwise):
     # print(f"rotate throttle: {leftMotors[0].throttle}  clockwise: {clockwise}")
     # torqueState.updateTorque(rightMotors[0].throttle, leftMotors[0].throttle, time.time())
 
+# This is a port of the adeept move_right method
+def motor_right(status, direction, speed):#Motor 1 positive and negative rotation
+    if status == 0:
+        motorStop()
+    else:
+        throttle = speed / 100.0
+        ff = 1 if direction else -1
+        for rightMotor in rightMotors:
+            rightMotor.throttle = ff * throttle
+
+
+# This is a port of the adeept motor_left method
+def motor_left(status, direction, speed):#Motor 1 positive and negative rotation
+    if status == 0:
+        motorStop()
+    else:
+        throttle = speed / 100.0
+        ff = 1 if direction else -1
+        for leftMotor in leftMotors:
+            leftMotor.throttle = ff * throttle
+
+
+# Throttle and steering each range from [-100, 100]
+def moveTiltControl(throttle, steering):
+	print(f"moveTiltControl({throttle}, {steering})")
+	if(throttle > 40):
+		t = throttle - 30
+		if(steering > 0):
+			motor_left(1, True, t)
+			motor_right(1, True, round(t * (100 - steering) / 100.0))
+		else:
+			motor_left(1, True, round(t * (100 + steering) / 100.0))
+			motor_right(1, True, t)
+	elif(throttle < -40): # throttle < 0
+		t = throttle + 30
+		if(steering > 0):
+			motor_left(1, False, -1 * t)
+			motor_right(1, False, -1 * round(t * (100 - steering) / 100.0))
+		else:
+			motor_left(1, False, -1 * round(t * (100 + steering) / 100.0))
+			motor_right(1, False, -1 * t)
+	elif(abs(steering) > 40):
+		if(steering > 0):
+			motor_left(1, True, steering)
+			motor_right(1, False, round(steering * (40 - abs(throttle)) / 40.0))
+		else:
+			motor_left(1, False, round(-steering * (40 - abs(throttle)) / 40.0))
+			motor_right(1, True, -steering)
+	else:
+		stop_moving()
 
 # forward = True|False
 # So there are 2 x 3 x 3 = 18 total "moves"
